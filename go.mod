@@ -2,8 +2,6 @@ module github.com/open-cluster-management/applier
 
 go 1.15
 
-replace github.com/open-cluster-management/applier => /Users/dvernier/acm/applier
-
 require (
 	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/ghodss/yaml v1.0.0
