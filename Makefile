@@ -57,8 +57,19 @@ examples:
 	go build -o examples/bin/render-yaml-in-dir examples/applier/render-yaml-in-dir/main.go
 	
 .PHONY: build
-build:
-	go build -o bin/applier cmd/applier/main.go
+build: 
+	go install ./cmd/applier
+
+.PHONY: install
+install: build
+
+.PHONY: oc-plugin
+oc-plugin: build
+	mv ${GOPATH}/bin/cm ${GOPATH}/bin/oc_cm
+
+.PHONY: kubectl-plugin
+kubectl-plugin: build
+	mv ${GOPATH}/bin/cm ${GOPATH}/bin/kubectl_cm
 
 .PHONY: functional-test
 functional-test:
