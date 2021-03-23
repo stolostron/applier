@@ -44,7 +44,7 @@ A reader allows the applier to read the templates. Two readers are provided in t
 A reader will read assets from a data source. You can find [testreader.go](pkg/templateprocessor/testreader.go) an example of a reader which reads the data from memory.
 
 A `bindata` implementation can be found at [bindata](examples/applier/bindata/bindatareader.go)
-A `embed` implementatation can be found at [go-embed](examples/applier/go-embed/resources.go)
+A `embed` implementatation can be found at [go-embed](https://github.com/open-cluster-management/cm-cli/blob/main/pkg/resources/resources.go)
 
 ### Methods
 

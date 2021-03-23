@@ -1,3 +1,0 @@
-{{- define "name" }}
-  .name
-{{- end }}
