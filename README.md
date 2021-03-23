@@ -1,6 +1,10 @@
 [comment]: # ( Copyright Contributors to the Open Cluster Management project )
 
-# Introduction to template
+# Applier
+
+The applier applies/creates/deletes templated resources on kubebernetes. A reader needs to be implemented to read the templated resources. Readers such as to read a directory structure or a string are provided and reader example for 'bindata' or 'go:embed' are provided.
+
+## Introduction to template
 
 The file [templateprocessor](pkg/templateprocessor) contains an number of methods allowing you to render template yaml files. 
 The template supports the [text/template](https://golang.org/pkg/text/template/) framework and so you can use statements defined in that framework.
@@ -14,6 +18,11 @@ A `_helpers.tpl` file can also be added to define your own functions.
 The resources are read by an Go object satisfying the [TemplateReader](pkg/templateprocessor/templateProcessor.go) reader.  
 The reader is embedded in a applier.TemplateProcessor object
 The resources are sorted in order to be applied in a kubernetes environment using a applier.Client
+
+## Template examples:
+
+- [example without _helpers.tpl](examples/applier/resources/yamlfilereader)
+- [example with _helpers.tpl](test/functional/resources/sample)
 
 ## command-line
 
