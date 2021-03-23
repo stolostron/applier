@@ -65,11 +65,11 @@ install: build
 
 .PHONY: oc-plugin
 oc-plugin: build
-	mv ${GOPATH}/bin/cm ${GOPATH}/bin/oc_cm
+	mv ${GOPATH}/bin/applier ${GOPATH}/bin/oc_applier
 
 .PHONY: kubectl-plugin
 kubectl-plugin: build
-	mv ${GOPATH}/bin/cm ${GOPATH}/bin/kubectl_cm
+	mv ${GOPATH}/bin/applier ${GOPATH}/bin/kubectl_applier
 
 .PHONY: functional-test
 functional-test:

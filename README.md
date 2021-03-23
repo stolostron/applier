@@ -2,16 +2,16 @@
 
 # Introduction to template
 
-The file [templateprocessor](../pkg/templateprocessor) contains an number of methods allowing you to render template yaml files. 
+The file [templateprocessor](pkg/templateprocessor) contains an number of methods allowing you to render template yaml files. 
 The template supports the [text/template](https://golang.org/pkg/text/template/) framework and so you can use statements defined in that framework.
 As the [Mastermind/sprig](https://github.com/Masterminds/sprig) is also loaded, you can use any functions defined by that framework.
-By enriching the [templatefunction.go](../pkg/templateprocessor/templatefunction.go), you can also develop your own functions. Check for example the function `toYaml` in the [templatefunction.go](../pkg/templateprocessor/templatefunction.go).
+By enriching the [templatefunction.go](pkg/templateprocessor/templatefunction.go), you can also develop your own functions. Check for example the function `toYaml` in the [templatefunction.go](pkg/templateprocessor/templatefunction.go).
 Available functions:
 - `toYaml` which marshal a Go object to yaml.
 - `encodeBase64` which base64 encode a string, but `b64enc` from sprig can be used.
 - `include` which include a template.
 A `_helpers.tpl` file can also be added to define your own functions.
-The resources are read by an Go object satisfying the [TemplateReader](../pkg/templateprocessor/templateProcessor.go) reader.  
+The resources are read by an Go object satisfying the [TemplateReader](pkg/templateprocessor/templateProcessor.go) reader.  
 The reader is embedded in a applier.TemplateProcessor object
 The resources are sorted in order to be applied in a kubernetes environment using a applier.Client
 
@@ -20,22 +20,14 @@ The resources are sorted in order to be applied in a kubernetes environment usin
 A command-line is available to apply yaml files in a given directory. 
 To generate it run either: 
 - `make build`, the `applier` executable will be in the `bin` directory
-- `go install -i github.com/open-cluster-management/library-go/cmd/applier` to install from your local environment
-- `go get -u github.com/open-cluster-management/library-go/cmd/applier` to install from github
+- `make install` to install from your local environment
+- `make oc-plugin` to install as a `oc` plugin
+- `make kubectl-plugin` to install as a `kubectl` plugin
 
+To get the usage, run:
 ```
-applier -d <templates_directory> [-o <output_file>] [-k <kubeconfig_file_path>] [-dry-run] [-v n] [-values <values_file_path>] 
+[oc|kubectl] applier -h 
 ```
-- `-d` The templates directory or file. If a `_helpers.tpl` file exists in the same directory of the file, the `_helpers.tpl` will be included.
-- `-o` The output file, if set the yamls will be not applied but a file will be created and can used with `kubectl apply -f`
-- `-values` The values.yaml file path
-- `-k` The path to the kubeconfig, if not set the KUBECONFIG env var will be use, if not set the default home user localtion is used.
-- `-dry-run` Display only (do not apply) the yaml files that will be applied
-- `-v` verbosity level.
-- `-h` display the Usage.
-- `-delete` if set the resources will be deleted.
-- `-force` Remove all finalizer after the deletion of the resource except for namespaces and CRD.
-
 The CLI accept values from pipe. These values are appened to the provided values.yaml. As the piped values are added at the end of the provided values.yaml, the piped values could override the values provided in values.yaml.
 
 For example:
@@ -46,18 +38,19 @@ For example:
 
 A reader allows the applier to read the templates. Two readers are provided in the package:
 
-- A Files reader: The files reader reads manage a single file template or all templates in a given directory. The applier has the capability to walk recursively in the directory if required. A new instance of the reader can be created with [NewYamlFileReader](../pkg/templateprocessor/yamlfilereader.go)
-- A String reader: The string reader reads templates from a string. Each template are separated by a delimiter. A new instance of the reader can be created with [NewYamlStringReader](../pkg/templateprocessor/yamlstringreader.go)
+- A Files reader: The files reader reads manage a single file template or all templates in a given directory. The applier has the capability to walk recursively in the directory if required. A new instance of the reader can be created with [NewYamlFileReader](pkg/templateprocessor/yamlfilereader.go)
+- A String reader: The string reader reads templates from a string. Each template are separated by a delimiter. A new instance of the reader can be created with [NewYamlStringReader](pkg/templateprocessor/yamlstringreader.go)
 
-A reader will read assets from a data source. You can find [testreader.go](../pkg/templateprocessor/testreader.go) an example of a reader which reads the data from memory.
+A reader will read assets from a data source. You can find [testreader.go](pkg/templateprocessor/testreader.go) an example of a reader which reads the data from memory.
 
-A bindata implementation can be found [bindata](../examples/templateprocessor/bindata/bindata/bindatareader.go)
+A `bindata` implementation can be found at [bindata](examples/applier/bindata/bindatareader.go)
+A `embed` implementatation can be found at [go-embed](examples/applier/go-embed/resources.go)
 
 ### Methods
 
-- In [applier](../pkg/templateprocessor) there are methods which process the yaml templates, return them as a list of yamls or list of `unstructured.Unstructured`.
+- In [templateprocessor](pkg/templateprocessor) there are methods which process the yaml templates, return them as a list of yamls or list of `unstructured.Unstructured`.
 - There are also methods that sort these processed yaml templates depending of their `kind`. The order is defined in `kindOrder` variable which can be override.
-Methods such as `CreateOrUpdateInPath` or `DeleteInPath` which `creates/update` or `delete` all resources definedd in a specific path. Other methods are available in the file [applier.go](../pkg/applier/applier.go)
+Methods such as `CreateOrUpdateInPath` or `DeleteInPath` which `creates/update` or `delete` all resources definedd in a specific path. Other methods are available in the file [applier.go](pkg/applier/applier.go)
 
 #### Example 1: Generate a templated yaml
 

@@ -51,6 +51,7 @@ func newOptions(streams genericclioptions.IOStreams) *Options {
 	}
 }
 
+//NewCmd generates a cobra.Command
 func NewCmd(streams genericclioptions.IOStreams) *cobra.Command {
 	o := newOptions(streams)
 
@@ -77,7 +78,8 @@ func NewCmd(streams genericclioptions.IOStreams) *cobra.Command {
 	cmd.Flags().StringVarP(&o.OutFile, "output", "o", "",
 		"Output file. If set nothing will be applied but a file will be generate "+
 			"which you can apply later with 'kubectl <create|apply|delete> -f")
-	cmd.Flags().StringVarP(&o.Directory, "directory", "d", "", "The directory or file containing the template(s)")
+	cmd.Flags().StringVarP(&o.Directory, "directory", "d", "", "The directory or file containing the template(s).\n" +
+	"If a `_helpers.tpl` file exists in the same directory of the file, the `_helpers.tpl` will be included.")
 	cmd.Flags().StringVar(&o.ValuesPath, "values", "", "The file containing the values")
 	cmd.Flags().BoolVar(&o.DryRun, "dry-run", false, "if set only the rendered yaml will be shown, default false")
 	cmd.Flags().StringVarP(&o.Prefix, "prefix", "p", "", "The prefix to add to each value names, for example 'Values'")
