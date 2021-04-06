@@ -33,10 +33,13 @@ func (o *Options) validate() error {
 }
 
 //run runs the commands
-func (o *Options) run() error {
-	client, err := getClientFromFlags(o.ConfigFlags)
-	if err != nil {
-		return err
+func (o *Options) run() (err error) {
+	var client crclient.Client
+	if len(o.OutFile) == 0 {
+		client, err = getClientFromFlags(o.ConfigFlags)
+		if err != nil {
+			return err
+		}
 	}
 
 	return o.apply(client)
