@@ -45,8 +45,6 @@ type Applier struct {
 type Options struct {
 	//The option used when a resource is created
 	ClientCreateOption []client.CreateOption
-	//The option used when a resource is updated
-	ClientUpdateOption []client.UpdateOption
 	//The option used when a resource is deleted
 	ClientDeleteOption []client.DeleteOption
 	//The option used when a resource is patched
@@ -532,29 +530,17 @@ func (a *Applier) Update(
 		return err
 	})
 	if errGet != nil {
-		klog.V(2).Info("Unable to update:", "Error", err,
+		klog.V(2).Info("Unable to patch:", "Error", err,
 			" Kind: ", u.GetKind(),
 			" Name: ", u.GetName(),
 			" Namespace: ", u.GetNamespace())
 		return errGet
 	} else {
-		// if a.merger == nil {
-		// 	return fmt.Errorf("Unable to update %s/%s of Kind %s the merger is nil",
-		// 		current.GetKind(),
-		// 		current.GetNamespace(),
-		// 		current.GetName())
-		// }
-		// future, update := a.merger(current, u)
-		// if update {
-		// var clientUpdateOptions []client.UpdateOption
 		var clientPatchOptions []client.PatchOption
 		if a.applierOptions != nil {
-			// clientUpdateOptions = a.applierOptions.ClientUpdateOption
 			clientPatchOptions = a.applierOptions.ClientPatchOption
 		}
-		// updatedOptions := &client.UpdateOptions{}
 		patchOptions := &client.PatchOptions{}
-		// clientUpdateOption := updatedOptions.ApplyOptions(clientUpdateOptions)
 		clientPatchOption := patchOptions.ApplyOptions(clientPatchOptions)
 		c := a.client
 		if a.applierOptions.DryRun {
@@ -563,7 +549,7 @@ func (a *Applier) Update(
 		}
 		err = retry.OnError(*a.applierOptions.Backoff, func(err error) bool {
 			if err != nil {
-				klog.V(2).Infof("Retry update %s", err)
+				klog.V(2).Infof("Retry patch %s", err)
 				return true
 			}
 			return false
@@ -572,22 +558,18 @@ func (a *Applier) Update(
 				u,
 				client.MergeFromWithOptions(current, client.MergeFromWithOptimisticLock{}),
 				clientPatchOption)
-			// err := c.Update(context.TODO(), future, clientUpdateOption)
 			if err != nil {
 				klog.V(2).Infof("Error while patching %s", err)
 			}
 			return err
 		})
 		if err != nil {
-			klog.V(2).Info("Unable to update:", "Error", err,
+			klog.V(2).Info("Unable to patch:", "Error", err,
 				" Kind: ", u.GetKind(),
 				" Name: ", u.GetName(),
 				" Namespace: ", u.GetNamespace())
 			return err
 		}
-		// } else {
-		// 	klog.V(2).Info("No update needed")
-		// }
 	}
 	return nil
 
@@ -640,12 +622,6 @@ func (a *Applier) Delete(
 		u.GetKind() != reflect.TypeOf(apiextensions.CustomResourceDefinition{}).Name() &&
 		u.GetKind() != reflect.TypeOf(corev1.Namespace{}).Name() {
 		u.SetFinalizers([]string{})
-		var clientUpdateOptions []client.UpdateOption
-		if a.applierOptions != nil {
-			clientUpdateOptions = a.applierOptions.ClientUpdateOption
-		}
-		updatedOptions := &client.UpdateOptions{}
-		clientUpdateOption := updatedOptions.ApplyOptions(clientUpdateOptions)
 		err := retry.OnError(*a.applierOptions.Backoff, func(err error) bool {
 			if err != nil && !errors.IsNotFound(err) {
 				klog.V(2).Infof("Retry removing finalizers %s", err)
@@ -653,7 +629,7 @@ func (a *Applier) Delete(
 			}
 			return false
 		}, func() error {
-			err := c.Update(context.TODO(), u, clientUpdateOption)
+			err := c.Update(context.TODO(), u)
 			if err != nil {
 				klog.V(2).Infof("Error while removing finalizers %s", err)
 			}
