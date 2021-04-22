@@ -31,7 +31,7 @@ func TestApplierClient_CreateOrUpdateInPath(t *testing.T) {
 
 	client := fake.NewFakeClient([]runtime.Object{}...)
 
-	a, err := NewApplier(reader, nil, client, nil, nil, nil, nil)
+	a, err := NewApplier(reader, nil, client, nil, nil, nil)
 	if err != nil {
 		t.Errorf("Unable to create applier %s", err.Error())
 	}
@@ -42,8 +42,9 @@ func TestApplierClient_CreateOrUpdateInPath(t *testing.T) {
 			Kind:       "ServiceAccount",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      values.BootstrapServiceAccountName,
-			Namespace: values.ManagedClusterNamespace,
+			Name:            values.BootstrapServiceAccountName,
+			Namespace:       values.ManagedClusterNamespace,
+			ResourceVersion: "0",
 		},
 	}
 	saSecrets := &corev1.ServiceAccount{
@@ -52,8 +53,9 @@ func TestApplierClient_CreateOrUpdateInPath(t *testing.T) {
 			Kind:       "ServiceAccount",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      values.BootstrapServiceAccountName,
-			Namespace: values.ManagedClusterNamespace,
+			Name:            values.BootstrapServiceAccountName,
+			Namespace:       values.ManagedClusterNamespace,
+			ResourceVersion: "0",
 		},
 		Secrets: []corev1.ObjectReference{
 			{Name: "objectname"},
@@ -61,21 +63,21 @@ func TestApplierClient_CreateOrUpdateInPath(t *testing.T) {
 	}
 	clientUpdate := fake.NewFakeClient(sa)
 
-	aUpdate, err := NewApplier(reader, nil, clientUpdate, nil, nil, DefaultKubernetesMerger, nil)
+	aUpdate, err := NewApplier(reader, nil, clientUpdate, nil, nil, nil)
 	if err != nil {
 		t.Errorf("Unable to create applier %s", err.Error())
 	}
 
-	clientUpdateNoMerger := fake.NewFakeClient(sa)
+	// clientUpdateNoMerger := fake.NewFakeClient(sa)
 
-	aUpdateNoMerger, err := NewApplier(reader, nil, clientUpdateNoMerger, nil, nil, nil, nil)
-	if err != nil {
-		t.Errorf("Unable to create applier %s", err.Error())
-	}
+	// aUpdateNoMerger, err := NewApplier(reader, nil, clientUpdateNoMerger, nil, nil, nil, nil)
+	// if err != nil {
+	// 	t.Errorf("Unable to create applier %s", err.Error())
+	// }
 
 	clientUpdateMerged := fake.NewFakeClient(saSecrets)
 
-	aUpdateMerged, err := NewApplier(reader, nil, clientUpdateMerged, nil, nil, DefaultKubernetesMerger, nil)
+	aUpdateMerged, err := NewApplier(reader, nil, clientUpdateMerged, nil, nil, nil)
 	if err != nil {
 		t.Errorf("Unable to create applier %s", err.Error())
 	}
@@ -113,17 +115,17 @@ func TestApplierClient_CreateOrUpdateInPath(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		{
-			name:   "success update no merger",
-			fields: *aUpdateNoMerger,
-			args: args{
-				path:      "test",
-				excluded:  nil,
-				recursive: false,
-				values:    values,
-			},
-			wantErr: true,
-		},
+		// {
+		// 	name:   "success update no merger",
+		// 	fields: *aUpdateNoMerger,
+		// 	args: args{
+		// 		path:      "test",
+		// 		excluded:  nil,
+		// 		recursive: false,
+		// 		values:    values,
+		// 	},
+		// 	wantErr: true,
+		// },
 		{
 			name:   "success update merged",
 			fields: *aUpdateMerged,
@@ -190,21 +192,12 @@ func TestNewApplier(t *testing.T) {
 	client := fake.NewFakeClient([]runtime.Object{}...)
 	owner := &corev1.Secret{}
 	scheme := &runtime.Scheme{}
-	merger := func(current,
-		new *unstructured.Unstructured,
-	) (
-		future *unstructured.Unstructured,
-		update bool,
-	) {
-		return nil, true
-	}
 	type args struct {
 		reader                   templateprocessor.TemplateReader
 		templateProcessorOptions *templateprocessor.Options
 		client                   crclient.Client
 		owner                    metav1.Object
 		scheme                   *runtime.Scheme
-		merger                   Merger
 	}
 	tests := []struct {
 		name    string
@@ -220,14 +213,12 @@ func TestNewApplier(t *testing.T) {
 				client:                   client,
 				owner:                    owner,
 				scheme:                   scheme,
-				merger:                   merger,
 			},
 			want: &Applier{
 				templateProcessor: &templateprocessor.TemplateProcessor{},
 				client:            client,
 				owner:             owner,
 				scheme:            scheme,
-				merger:            merger,
 			},
 			wantErr: false,
 		},
@@ -239,7 +230,6 @@ func TestNewApplier(t *testing.T) {
 				client:                   client,
 				owner:                    owner,
 				scheme:                   scheme,
-				merger:                   merger,
 			},
 			want:    nil,
 			wantErr: true,
@@ -252,7 +242,6 @@ func TestNewApplier(t *testing.T) {
 				client:                   nil,
 				owner:                    owner,
 				scheme:                   scheme,
-				merger:                   merger,
 			},
 			want:    nil,
 			wantErr: true,
@@ -260,7 +249,7 @@ func TestNewApplier(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewApplier(tt.args.reader, tt.args.templateProcessorOptions, tt.args.client, tt.args.owner, tt.args.scheme, tt.args.merger, nil)
+			got, err := NewApplier(tt.args.reader, tt.args.templateProcessorOptions, tt.args.client, tt.args.owner, tt.args.scheme, nil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewApplier() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -269,8 +258,7 @@ func TestNewApplier(t *testing.T) {
 				if !reflect.DeepEqual(got.templateProcessor, tt.want.templateProcessor) &&
 					!reflect.DeepEqual(got.client, tt.want.client) &&
 					!reflect.DeepEqual(got.owner, tt.want.owner) &&
-					!reflect.DeepEqual(got.scheme, tt.want.scheme) &&
-					!reflect.DeepEqual(got.merger, tt.want.merger) {
+					!reflect.DeepEqual(got.scheme, tt.want.scheme) {
 					t.Errorf("NewApplier() = %v, want %v", got, tt.want)
 				}
 			}
@@ -301,7 +289,6 @@ func TestApplier_setControllerReference(t *testing.T) {
 		client            crclient.Client
 		owner             metav1.Object
 		scheme            *runtime.Scheme
-		merger            Merger
 	}
 	type args struct {
 		u *unstructured.Unstructured
@@ -318,7 +305,6 @@ func TestApplier_setControllerReference(t *testing.T) {
 				client: nil,
 				owner:  sa,
 				scheme: testscheme,
-				merger: nil,
 			},
 			args: args{
 				u: &unstructured.Unstructured{
@@ -340,7 +326,6 @@ func TestApplier_setControllerReference(t *testing.T) {
 				client: nil,
 				owner:  nil,
 				scheme: testscheme,
-				merger: nil,
 			},
 			args: args{
 				u: &unstructured.Unstructured{
@@ -364,7 +349,6 @@ func TestApplier_setControllerReference(t *testing.T) {
 				client:            tt.fields.client,
 				owner:             tt.fields.owner,
 				scheme:            tt.fields.scheme,
-				merger:            tt.fields.merger,
 			}
 			err := a.setControllerReference(tt.args.u)
 			if (err != nil) != tt.wantErr {
@@ -400,7 +384,7 @@ func TestApplier_CreateInPath(t *testing.T) {
 
 	client := fake.NewFakeClient([]runtime.Object{}...)
 
-	a, err := NewApplier(reader, nil, client, nil, nil, nil, nil)
+	a, err := NewApplier(reader, nil, client, nil, nil, nil)
 	if err != nil {
 		t.Errorf("Unable to create applier %s", err.Error())
 	}
@@ -417,7 +401,7 @@ func TestApplier_CreateInPath(t *testing.T) {
 	}
 	clientUpdate := fake.NewFakeClient(sa)
 
-	aUpdate, err := NewApplier(reader, nil, clientUpdate, nil, nil, DefaultKubernetesMerger, nil)
+	aUpdate, err := NewApplier(reader, nil, clientUpdate, nil, nil, nil)
 	if err != nil {
 		t.Errorf("Unable to create applier %s", err.Error())
 	}
@@ -463,7 +447,6 @@ func TestApplier_CreateInPath(t *testing.T) {
 				client:            tt.fields.client,
 				owner:             tt.fields.owner,
 				scheme:            tt.fields.scheme,
-				merger:            tt.fields.merger,
 				applierOptions:    tt.fields.applierOptions,
 			}
 			if err := a.CreateInPath(tt.args.path, tt.args.excluded, tt.args.recursive, tt.args.values); (err != nil) != tt.wantErr {
@@ -484,45 +467,29 @@ func TestApplier_UpdateInPath(t *testing.T) {
 
 	client := fake.NewFakeClient([]runtime.Object{}...)
 
-	a, err := NewApplier(reader, nil, client, nil, nil, nil, nil)
+	a, err := NewApplier(reader, nil, client, nil, nil, nil)
 	if err != nil {
 		t.Errorf("Unable to create applier %s", err.Error())
 	}
 
-	sa := &corev1.ServiceAccount{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: corev1.SchemeGroupVersion.String(),
-			Kind:       "ServiceAccount",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      values.BootstrapServiceAccountName,
-			Namespace: values.ManagedClusterNamespace,
-		},
-	}
 	saSecrets := &corev1.ServiceAccount{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: corev1.SchemeGroupVersion.String(),
 			Kind:       "ServiceAccount",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      values.BootstrapServiceAccountName,
-			Namespace: values.ManagedClusterNamespace,
+			Name:            values.BootstrapServiceAccountName,
+			Namespace:       values.ManagedClusterNamespace,
+			ResourceVersion: "0",
 		},
 		Secrets: []corev1.ObjectReference{
 			{Name: "objectname"},
 		},
 	}
 
-	clientUpdateNoMerger := fake.NewFakeClient(sa)
-
-	aUpdateNoMerger, err := NewApplier(reader, nil, clientUpdateNoMerger, nil, nil, nil, nil)
-	if err != nil {
-		t.Errorf("Unable to create applier %s", err.Error())
-	}
-
 	clientUpdateMerged := fake.NewFakeClient(saSecrets)
 
-	aUpdateMerged, err := NewApplier(reader, nil, clientUpdateMerged, nil, nil, DefaultKubernetesMerger, nil)
+	aUpdateMerged, err := NewApplier(reader, nil, clientUpdateMerged, nil, nil, nil)
 	if err != nil {
 		t.Errorf("Unable to create applier %s", err.Error())
 	}
@@ -550,20 +517,6 @@ func TestApplier_UpdateInPath(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:   "success update no merger",
-			fields: *aUpdateNoMerger,
-			args: args{
-				path: "test",
-				excluded: []string{
-					"test/clusterrolebinding",
-					"test/clusterrole",
-				},
-				recursive: false,
-				values:    values,
-			},
-			wantErr: true,
-		},
-		{
 			name:   "success update merged",
 			fields: *aUpdateMerged,
 			args: args{
@@ -585,7 +538,6 @@ func TestApplier_UpdateInPath(t *testing.T) {
 				client:            tt.fields.client,
 				owner:             tt.fields.owner,
 				scheme:            tt.fields.scheme,
-				merger:            tt.fields.merger,
 				applierOptions:    tt.fields.applierOptions,
 			}
 			if err := a.UpdateInPath(tt.args.path, tt.args.excluded, tt.args.recursive, tt.args.values); (err != nil) != tt.wantErr {
@@ -617,7 +569,7 @@ func TestApplier_DeleteInPath(t *testing.T) {
 
 	client := fake.NewFakeClient(sa)
 
-	a, err := NewApplier(reader, nil, client, nil, nil, nil, nil)
+	a, err := NewApplier(reader, nil, client, nil, nil, nil)
 	if err != nil {
 		t.Errorf("Unable to create applier %s", err.Error())
 	}
@@ -656,7 +608,6 @@ func TestApplier_DeleteInPath(t *testing.T) {
 				client:            tt.fields.client,
 				owner:             tt.fields.owner,
 				scheme:            tt.fields.scheme,
-				merger:            tt.fields.merger,
 				applierOptions:    tt.fields.applierOptions,
 			}
 			if err := a.DeleteInPath(tt.args.path, tt.args.excluded, tt.args.recursive, tt.args.values); (err != nil) != tt.wantErr {
@@ -686,7 +637,7 @@ func TestApplier_CreateOrUpdateResources(t *testing.T) {
 
 	client := fake.NewFakeClient([]runtime.Object{}...)
 
-	a, err := NewApplier(reader, nil, client, nil, nil, nil, nil)
+	a, err := NewApplier(reader, nil, client, nil, nil, nil)
 	if err != nil {
 		t.Errorf("Unable to create applier %s", err.Error())
 	}
@@ -697,20 +648,14 @@ func TestApplier_CreateOrUpdateResources(t *testing.T) {
 			Kind:       "ServiceAccount",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      values.BootstrapServiceAccountName,
-			Namespace: values.ManagedClusterNamespace,
+			Name:            values.BootstrapServiceAccountName,
+			Namespace:       values.ManagedClusterNamespace,
+			ResourceVersion: "0",
 		},
 	}
 	clientUpdate := fake.NewFakeClient(sa)
 
-	aUpdate, err := NewApplier(reader, nil, clientUpdate, nil, nil, DefaultKubernetesMerger, nil)
-	if err != nil {
-		t.Errorf("Unable to create applier %s", err.Error())
-	}
-
-	clientUpdateNoMerger := fake.NewFakeClient(sa)
-
-	aUpdateNoMerger, err := NewApplier(reader, nil, clientUpdateNoMerger, nil, nil, nil, nil)
+	aUpdate, err := NewApplier(reader, nil, clientUpdate, nil, nil, nil)
 	if err != nil {
 		t.Errorf("Unable to create applier %s", err.Error())
 	}
@@ -743,15 +688,6 @@ func TestApplier_CreateOrUpdateResources(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		{
-			name:   "success update no merger",
-			fields: *aUpdateNoMerger,
-			args: args{
-				assets: []string{"0", "1", "2"},
-				values: values,
-			},
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -760,7 +696,6 @@ func TestApplier_CreateOrUpdateResources(t *testing.T) {
 				client:            tt.fields.client,
 				owner:             tt.fields.owner,
 				scheme:            tt.fields.scheme,
-				merger:            tt.fields.merger,
 				applierOptions:    tt.fields.applierOptions,
 			}
 			if err := a.CreateOrUpdateResources(tt.args.assets, tt.args.values); (err != nil) != tt.wantErr {
@@ -779,7 +714,7 @@ func TestApplier_CreateOrUpdateResource(t *testing.T) {
 
 	client := fake.NewFakeClient([]runtime.Object{}...)
 
-	a, err := NewApplier(reader, nil, client, nil, nil, nil, nil)
+	a, err := NewApplier(reader, nil, client, nil, nil, nil)
 	if err != nil {
 		t.Errorf("Unable to create applier %s", err.Error())
 	}
@@ -790,20 +725,14 @@ func TestApplier_CreateOrUpdateResource(t *testing.T) {
 			Kind:       "ServiceAccount",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      values.BootstrapServiceAccountName,
-			Namespace: values.ManagedClusterNamespace,
+			Name:            values.BootstrapServiceAccountName,
+			Namespace:       values.ManagedClusterNamespace,
+			ResourceVersion: "0",
 		},
 	}
 	clientUpdate := fake.NewFakeClient(sa)
 
-	aUpdate, err := NewApplier(reader, nil, clientUpdate, nil, nil, DefaultKubernetesMerger, nil)
-	if err != nil {
-		t.Errorf("Unable to create applier %s", err.Error())
-	}
-
-	clientUpdateNoMerger := fake.NewFakeClient(sa)
-
-	aUpdateNoMerger, err := NewApplier(reader, nil, clientUpdateNoMerger, nil, nil, nil, nil)
+	aUpdate, err := NewApplier(reader, nil, clientUpdate, nil, nil, nil)
 	if err != nil {
 		t.Errorf("Unable to create applier %s", err.Error())
 	}
@@ -836,15 +765,6 @@ func TestApplier_CreateOrUpdateResource(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		{
-			name:   "success update no merger",
-			fields: *aUpdateNoMerger,
-			args: args{
-				asset:  "0",
-				values: values,
-			},
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -853,7 +773,6 @@ func TestApplier_CreateOrUpdateResource(t *testing.T) {
 				client:            tt.fields.client,
 				owner:             tt.fields.owner,
 				scheme:            tt.fields.scheme,
-				merger:            tt.fields.merger,
 				applierOptions:    tt.fields.applierOptions,
 			}
 			if err := a.CreateOrUpdateResource(tt.args.asset, tt.args.values); (err != nil) != tt.wantErr {

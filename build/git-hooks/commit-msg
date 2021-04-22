@@ -1,0 +1,8 @@
+#!/bin/bash -e
+# Copyright Contributors to the Open Cluster Management project
+
+if ! grep Signed-off-by "$1" > /dev/null
+then 
+    echo -e "Signoff missing\n'git commit -a --signoff -m <your_message>'"
+    exit 1
+fi

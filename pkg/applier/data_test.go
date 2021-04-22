@@ -33,6 +33,7 @@ kind: ServiceAccount
 metadata:
   name: "{{ .BootstrapServiceAccountName }}"
   namespace: "{{ .ManagedClusterNamespace }}"
+  revisionVersion: "0"
 secrets:
 - name: mysecret`,
 
