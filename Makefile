@@ -17,6 +17,10 @@ export KUBEBUILDER_HOME := /usr/local/kubebuilder
 
 export PATH := ${PATH}:${KUBEBUILDER_HOME}/bin
 
+.PHONY: clean
+clean:
+	kind delete cluster --name ${PROJECT_NAME}-functional-test
+	
 .PHONY: deps
 deps:
 	$(INSTALL_DEPENDENCIES)

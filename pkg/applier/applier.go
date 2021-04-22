@@ -37,8 +37,6 @@ type Applier struct {
 	owner metav1.Object
 	//The scheme
 	scheme *runtime.Scheme
-	//A merger defining how two objects must be merged
-	merger Merger
 	//applier options for the applier
 	applierOptions *Options
 }
@@ -51,6 +49,8 @@ type Options struct {
 	ClientUpdateOption []client.UpdateOption
 	//The option used when a resource is deleted
 	ClientDeleteOption []client.DeleteOption
+	//The option used when a resource is patched
+	ClientPatchOption []client.PatchOption
 	//Defines the parameters for retrying a transaction if it fails.
 	Backoff *wait.Backoff
 	//If true, the client will be set for dryrun
@@ -71,7 +71,6 @@ func NewApplier(
 	client client.Client,
 	owner metav1.Object,
 	scheme *runtime.Scheme,
-	merger Merger,
 	applierOptions *Options,
 ) (*Applier, error) {
 	templateProcessor, err := templateprocessor.NewTemplateProcessor(templateReader, templateProcessorOptions)
@@ -88,56 +87,14 @@ func NewApplier(
 		applierOptions.Backoff = &retry.DefaultBackoff
 	}
 	return &Applier{
-		templateProcessor: templateProcessor,
-		client:            client,
-		owner:             owner,
-		scheme:            scheme,
-		merger:            merger,
-		applierOptions:    applierOptions,
+		templateReader:           templateReader,
+		templateProcessorOptions: templateProcessorOptions,
+		templateProcessor:        templateProcessor,
+		client:                   client,
+		owner:                    owner,
+		scheme:                   scheme,
+		applierOptions:           applierOptions,
 	}, nil
-}
-
-//Merger merges the `current` and the `want` resources into one resource which will be use for to update.
-// If `update` is true than the update will be executed.
-type Merger func(current,
-	new *unstructured.Unstructured,
-) (
-	future *unstructured.Unstructured,
-	update bool,
-)
-
-var rootAttributes = []string{
-	"spec",
-	"rules",
-	"roleRef",
-	"subjects",
-	"secrets",
-	"imagePullSecrets",
-	"automountServiceAccountToken"}
-
-//DefaultKubernetesMerger merges kubernetes runtime.Object
-//It merges the spec, rules, roleRef, subjects root attribute of a runtime.Object
-//For example a CLusterRoleBinding has a subjects and roleRef fields and so the old
-//subjects and roleRef fields from the ClusterRoleBinding will be replaced by the new values.
-var DefaultKubernetesMerger Merger = func(current,
-	new *unstructured.Unstructured,
-) (
-	future *unstructured.Unstructured,
-	update bool,
-) {
-	for _, r := range rootAttributes {
-		if newValue, ok := new.Object[r]; ok {
-			if !reflect.DeepEqual(newValue, current.Object[r]) {
-				update = true
-				current.Object[r] = newValue
-			}
-		} else {
-			if _, ok := current.Object[r]; ok {
-				current.Object[r] = nil
-			}
-		}
-	}
-	return current, update
 }
 
 //CreateOrUpdateInPath creates or updates the assets found in the path and
@@ -444,7 +401,7 @@ func (a *Applier) CreateOrUpdate(
 		" Name: ", u.GetName(),
 		" Namespace: ", u.GetNamespace())
 	if u.GetKind() == "" {
-		return fmt.Errorf("Kind is missing for Name: %s, Namespace: %s", u.GetName(), u.GetNamespace())
+		return fmt.Errorf("kind is missing for Name: %s, Namespace: %s", u.GetName(), u.GetNamespace())
 	}
 
 	//Check if already exists
@@ -494,7 +451,7 @@ func (a *Applier) Create(
 		" Name: ", u.GetName(),
 		" Namespace: ", u.GetNamespace())
 	if u.GetKind() == "" {
-		return fmt.Errorf("Kind is missing for Name: %s, Namespace: %s", u.GetName(), u.GetNamespace())
+		return fmt.Errorf("kind is missing for Name: %s, Namespace: %s", u.GetName(), u.GetNamespace())
 	}
 	//Set controller ref
 	err := a.setControllerReference(u)
@@ -543,12 +500,12 @@ func (a *Applier) Update(
 	u *unstructured.Unstructured,
 ) error {
 
-	klog.V(2).Info("Update: ",
+	klog.V(2).Info("Patching: ",
 		" Kind: ", u.GetKind(),
 		" Name: ", u.GetName(),
 		" Namespace: ", u.GetNamespace())
 	if u.GetKind() == "" {
-		return fmt.Errorf("Kind is missing for Name: %s, Namespace: %s", u.GetName(), u.GetNamespace())
+		return fmt.Errorf("kind is missing for Name: %s, Namespace: %s", u.GetName(), u.GetNamespace())
 	}
 	//Set controller ref
 	err := a.setControllerReference(u)
@@ -581,48 +538,56 @@ func (a *Applier) Update(
 			" Namespace: ", u.GetNamespace())
 		return errGet
 	} else {
-		if a.merger == nil {
-			return fmt.Errorf("Unable to update %s/%s of Kind %s the merger is nil",
-				current.GetKind(),
-				current.GetNamespace(),
-				current.GetName())
+		// if a.merger == nil {
+		// 	return fmt.Errorf("Unable to update %s/%s of Kind %s the merger is nil",
+		// 		current.GetKind(),
+		// 		current.GetNamespace(),
+		// 		current.GetName())
+		// }
+		// future, update := a.merger(current, u)
+		// if update {
+		// var clientUpdateOptions []client.UpdateOption
+		var clientPatchOptions []client.PatchOption
+		if a.applierOptions != nil {
+			// clientUpdateOptions = a.applierOptions.ClientUpdateOption
+			clientPatchOptions = a.applierOptions.ClientPatchOption
 		}
-		future, update := a.merger(current, u)
-		if update {
-			var clientUpdateOptions []client.UpdateOption
-			if a.applierOptions != nil {
-				clientUpdateOptions = a.applierOptions.ClientUpdateOption
-			}
-			updatedOptions := &client.UpdateOptions{}
-			clientUpdateOption := updatedOptions.ApplyOptions(clientUpdateOptions)
-			c := a.client
-			if a.applierOptions.DryRun {
-				printUnstructure(u)
-				c = client.NewDryRunClient(c)
-			}
-			err = retry.OnError(*a.applierOptions.Backoff, func(err error) bool {
-				if err != nil {
-					klog.V(2).Infof("Retry update %s", err)
-					return true
-				}
-				return false
-			}, func() error {
-				err := c.Update(context.TODO(), future, clientUpdateOption)
-				if err != nil {
-					klog.V(2).Infof("Error while updating %s", err)
-				}
-				return err
-			})
+		// updatedOptions := &client.UpdateOptions{}
+		patchOptions := &client.PatchOptions{}
+		// clientUpdateOption := updatedOptions.ApplyOptions(clientUpdateOptions)
+		clientPatchOption := patchOptions.ApplyOptions(clientPatchOptions)
+		c := a.client
+		if a.applierOptions.DryRun {
+			printUnstructure(u)
+			c = client.NewDryRunClient(c)
+		}
+		err = retry.OnError(*a.applierOptions.Backoff, func(err error) bool {
 			if err != nil {
-				klog.V(2).Info("Unable to update:", "Error", err,
-					" Kind: ", u.GetKind(),
-					" Name: ", u.GetName(),
-					" Namespace: ", u.GetNamespace())
-				return err
+				klog.V(2).Infof("Retry update %s", err)
+				return true
 			}
-		} else {
-			klog.V(2).Info("No update needed")
+			return false
+		}, func() error {
+			err := c.Patch(context.TODO(),
+				u,
+				client.MergeFromWithOptions(current, client.MergeFromWithOptimisticLock{}),
+				clientPatchOption)
+			// err := c.Update(context.TODO(), future, clientUpdateOption)
+			if err != nil {
+				klog.V(2).Infof("Error while patching %s", err)
+			}
+			return err
+		})
+		if err != nil {
+			klog.V(2).Info("Unable to update:", "Error", err,
+				" Kind: ", u.GetKind(),
+				" Name: ", u.GetName(),
+				" Namespace: ", u.GetNamespace())
+			return err
 		}
+		// } else {
+		// 	klog.V(2).Info("No update needed")
+		// }
 	}
 	return nil
 
@@ -638,7 +603,7 @@ func (a *Applier) Delete(
 		" Name: ", u.GetName(),
 		" Namespace: ", u.GetNamespace())
 	if u.GetKind() == "" {
-		return fmt.Errorf("Kind is missing for Name: %s, Namespace: %s", u.GetName(), u.GetNamespace())
+		return fmt.Errorf("kind is missing for Name: %s, Namespace: %s", u.GetName(), u.GetNamespace())
 	}
 	var clientDeleteOptions []client.DeleteOption
 	if a.applierOptions != nil {

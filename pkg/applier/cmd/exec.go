@@ -140,7 +140,6 @@ func (o *Options) ApplyWithValues(client crclient.Client, templateReader templat
 		client,
 		nil,
 		nil,
-		applier.DefaultKubernetesMerger,
 		applierOptions)
 	if err != nil {
 		return err
