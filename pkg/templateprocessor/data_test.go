@@ -72,16 +72,15 @@ subjects:
 - kind: ServiceAccount
   name: {{ .BootstrapServiceAccountName }}
   namespace: {{ .ManagedClusterNamespace }}
-
----
+--- # hello
 apiVersion: v1
 kind: ServiceAccount
+# hello ---
 metadata:
   name: "{{ .BootstrapServiceAccountName }}"
   namespace: "{{ .ManagedClusterNamespace }}"
 secrets:
 - name: mysecret
-
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
