@@ -20,6 +20,7 @@ subjects:
   name: {{ .BootstrapServiceAccountName }}
   namespace: {{ .ManagedClusterNamespace }}`, `apiVersion: v1
 kind: ServiceAccount
+# hello ---
 metadata:
   name: "{{ .BootstrapServiceAccountName }}"
   namespace: "{{ .ManagedClusterNamespace }}"
@@ -66,7 +67,7 @@ func TestNewYamlStringReader(t *testing.T) {
 			got := NewYamlStringReader(tt.args.Yamls, tt.args.delimiter)
 			t.Log(len(got.Yamls))
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewYamlStringReader() = %v, want %v", got, tt.want)
+				t.Errorf("NewYamlStringReader() = \n%v\n, want\n%v", got, tt.want)
 			}
 		})
 	}

@@ -25,7 +25,7 @@ const copyright = `# Copyright Contributors to the Open Cluster Management proje
 `
 
 //KubernetesYamlsDelimiter regular expression for yaml delimiter
-const KubernetesYamlsDelimiter = "(?m)^-{3}$"
+const KubernetesYamlsDelimiter = "(?m)^-{3}.*$"
 
 //KubernetesYamlsDelimiterString default yaml delimiter
 const KubernetesYamlsDelimiterString = "---\n"
@@ -199,7 +199,7 @@ func NewTemplateProcessor(
 	ss := re.FindAllString(options.DelimiterString, -1)
 	if len(ss) != 1 || ss[0] != strings.TrimSuffix(options.DelimiterString, "\n") {
 		return nil,
-			fmt.Errorf("Regexp options.Delimiter %s is not perfectly matching options.DelimiterString %s",
+			fmt.Errorf("regexp options.Delimiter %s is not perfectly matching options.DelimiterString %s+",
 				options.Delimiter,
 				options.DelimiterString)
 	}
@@ -388,7 +388,7 @@ func (tp *TemplateProcessor) AssetNamesInPath(
 	}
 	if len(results) == 0 {
 		return results,
-			fmt.Errorf("No asset found in path \"%s\" with excluded %v and recursive %t",
+			fmt.Errorf("no asset found in path \"%s\" with excluded %v and recursive %t",
 				path,
 				excluded,
 				recursive)

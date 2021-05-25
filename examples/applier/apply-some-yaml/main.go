@@ -82,7 +82,6 @@ func applyYamlFile(kubeconfig string) error {
 		client,
 		nil,
 		nil,
-		applier.DefaultKubernetesMerger,
 		nil)
 	if err != nil {
 		return err

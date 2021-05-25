@@ -63,7 +63,7 @@ func (o *Options) apply(client crclient.Client) (err error) {
 
 	templateReader := templateprocessor.NewYamlFileReader(o.Directory)
 
-	return o.ApplyWithValues(client, templateReader, "", values)
+	return o.ApplyWithValues(client, templateReader, "", []string{}, values)
 }
 
 func ConvertValuesFileToValuesMap(path, prefix string) (values map[string]interface{}, err error) {
@@ -106,20 +106,57 @@ func ConvertValuesFileToValuesMap(path, prefix string) (values map[string]interf
 	return values, nil
 }
 
-func (o *Options) ApplyWithValues(client crclient.Client, templateReader templateprocessor.TemplateReader, path string, values map[string]interface{}) (err error) {
+func (o *Options) ApplyWithValues(client crclient.Client, templateReader templateprocessor.TemplateReader, path string, excluded []string, values map[string]interface{}) (err error) {
 	if o.OutFile != "" {
-		templateProcessor, err := templateprocessor.NewTemplateProcessor(templateReader, &templateprocessor.Options{})
-		if err != nil {
-			return err
-		}
-		outV, err := templateProcessor.TemplateResourcesInPathYaml(path, []string{}, true, values)
-		if err != nil {
-			return err
-		}
-		// out := templateprocessor.ConvertArrayOfBytesToString(outV)
-		// klog.V(1).Infof("result:\n%s", out)
-		return ioutil.WriteFile(filepath.Clean(o.OutFile), []byte(templateprocessor.ConvertArrayOfBytesToString(outV)), 0600)
+		return o.createOutput(templateReader, path, excluded, values)
 	}
+
+	a, err := o.createApplier(client, templateReader, path)
+	if err != nil {
+		return err
+	}
+	if o.Delete {
+		err = a.DeleteInPath(path, excluded, true, values)
+	} else {
+		err = a.CreateOrUpdateInPath(path, excluded, true, values)
+	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (o *Options) UpdateWithValues(client crclient.Client, templateReader templateprocessor.TemplateReader, path string, excluded []string, values map[string]interface{}) (err error) {
+	if o.OutFile != "" {
+		return o.createOutput(templateReader, path, excluded, values)
+	}
+
+	a, err := o.createApplier(client, templateReader, path)
+	if err != nil {
+		return err
+	}
+	err = a.UpdateInPath(path, excluded, true, values)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (o *Options) createOutput(templateReader templateprocessor.TemplateReader, path string, excluded []string, values map[string]interface{}) error {
+	templateProcessor, err := templateprocessor.NewTemplateProcessor(templateReader, &templateprocessor.Options{})
+	if err != nil {
+		return err
+	}
+	outV, err := templateProcessor.TemplateResourcesInPathYaml(path, excluded, true, values)
+	if err != nil {
+		return err
+	}
+	// out := templateprocessor.ConvertArrayOfBytesToString(outV)
+	// klog.V(1).Infof("result:\n%s", out)
+	return ioutil.WriteFile(filepath.Clean(o.OutFile), []byte(templateprocessor.ConvertArrayOfBytesToString(outV)), 0600)
+}
+
+func (o *Options) createApplier(client crclient.Client, templateReader templateprocessor.TemplateReader, path string) (a *applier.Applier, err error) {
 
 	applierOptions := &applier.Options{
 		Backoff: &wait.Backoff{
@@ -135,24 +172,12 @@ func (o *Options) ApplyWithValues(client crclient.Client, templateReader templat
 	if o.DryRun {
 		client = crclient.NewDryRunClient(client)
 	}
-	a, err := applier.NewApplier(templateReader,
+	return applier.NewApplier(templateReader,
 		&templateprocessor.Options{},
 		client,
 		nil,
 		nil,
 		applierOptions)
-	if err != nil {
-		return err
-	}
-	if o.Delete {
-		err = a.DeleteInPath(path, nil, true, values)
-	} else {
-		err = a.CreateOrUpdateInPath(path, nil, true, values)
-	}
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 //checkOptions checks the options
