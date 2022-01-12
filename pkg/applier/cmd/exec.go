@@ -15,8 +15,8 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 
 	"github.com/ghodss/yaml"
-	"github.com/open-cluster-management/applier/pkg/applier"
-	"github.com/open-cluster-management/applier/pkg/templateprocessor"
+	"github.com/stolostron/applier/pkg/applier"
+	"github.com/stolostron/applier/pkg/templateprocessor"
 
 	// "k8s.io/klog"
 	crclient "sigs.k8s.io/controller-runtime/pkg/client"

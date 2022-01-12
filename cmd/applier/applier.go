@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/pflag"
 
-	appliercmd "github.com/open-cluster-management/applier/pkg/applier/cmd"
+	appliercmd "github.com/stolostron/applier/pkg/applier/cmd"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 

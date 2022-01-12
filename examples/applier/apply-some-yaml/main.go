@@ -8,9 +8,8 @@ import (
 	"flag"
 	"os"
 
-	// "github.com/open-cluster-management/applier/examples/applier/bindata"
-	"github.com/open-cluster-management/applier/pkg/applier"
-	"github.com/open-cluster-management/applier/pkg/templateprocessor"
+	"github.com/stolostron/applier/pkg/applier"
+	"github.com/stolostron/applier/pkg/templateprocessor"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/client"

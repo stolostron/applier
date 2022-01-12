@@ -1,4 +1,4 @@
-module github.com/open-cluster-management/applier
+module github.com/stolostron/applier
 
 go 1.15
 
