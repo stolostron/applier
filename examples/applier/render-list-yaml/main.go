@@ -8,9 +8,7 @@ import (
 	"flag"
 	"os"
 
-	// "github.com/open-cluster-management/applier/examples/applier/bindata"
-
-	"github.com/open-cluster-management/applier/pkg/templateprocessor"
+	"github.com/stolostron/applier/pkg/templateprocessor"
 	"k8s.io/klog"
 )
 

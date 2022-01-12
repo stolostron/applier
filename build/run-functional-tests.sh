@@ -19,13 +19,7 @@ if ! which kind > /dev/null; then
     chmod +x ./kind
     sudo mv ./kind /usr/local/bin/kind
 fi
-if ! which ginkgo > /dev/null; then
-    echo "Installing ginkgo ..."
-    pushd $(mktemp -d)
-    GO111MODULE=off go get github.com/onsi/ginkgo/ginkgo
-    GO111MODULE=off go get github.com/onsi/gomega/...
-    popd
-fi
+
 if ! which gocovmerge > /dev/null; then
   echo "Installing gocovmerge..."
   pushd $(mktemp -d)

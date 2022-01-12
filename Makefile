@@ -77,7 +77,8 @@ kubectl-plugin: build
 
 .PHONY: functional-test
 functional-test:
-	ginkgo -tags functional -v --slowSpecThreshold=30 test/functional -- -v=1
+	go test -tags functional -c ./test/functional -o ./test/functional/functional.test
+	cd ./test/functional && ./functional.test -ginkgo.slowSpecThreshold=15 -ginkgo.v=1 -ginkgo.failFast
 
 .PHONY: functional-test-full
 functional-test-full: 

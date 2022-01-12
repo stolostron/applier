@@ -1,5 +1,6 @@
 // Copyright Contributors to the Open Cluster Management project
 
+//go:build functional
 // +build functional
 
 package functional_test
@@ -10,7 +11,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/open-cluster-management/applier/pkg/templateprocessor"
+	"github.com/stolostron/applier/pkg/templateprocessor"
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -18,7 +19,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/open-cluster-management/applier/pkg/applier"
+	"github.com/stolostron/applier/pkg/applier"
 	"gopkg.in/yaml.v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
