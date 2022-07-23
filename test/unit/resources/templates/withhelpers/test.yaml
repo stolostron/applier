@@ -1,7 +1,0 @@
-# Copyright Contributors to the Open Cluster Management project
-
-# Copyright (c) 2020 Red Hat, Inc
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: {{ template "myshortname.name" . }}
