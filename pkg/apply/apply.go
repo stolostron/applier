@@ -414,12 +414,14 @@ func WriteOutput(fileName string, output []string) (err error) {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	// defer f.Close()
 	for _, s := range output {
 		_, err := f.WriteString(fmt.Sprintf("%s\n---\n", s))
 		if err != nil {
+			f.Close()
 			return err
 		}
 	}
+	f.Close()
 	return err
 }
