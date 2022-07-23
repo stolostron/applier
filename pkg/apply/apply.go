@@ -418,10 +418,12 @@ func WriteOutput(fileName string, output []string) (err error) {
 	for _, s := range output {
 		_, err := f.WriteString(fmt.Sprintf("%s\n---\n", s))
 		if err != nil {
-			f.Close()
+			if errClose := f.Close(); errClose != nil {
+				return fmt.Errorf("failed to close %v after err %v on writing", errClose, err)
+			}
 			return err
 		}
 	}
-	f.Close()
+	err = f.Close()
 	return err
 }
