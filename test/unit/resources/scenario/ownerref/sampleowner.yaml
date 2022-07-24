@@ -1,0 +1,8 @@
+# Copyright Contributors to the Open Cluster Management project
+
+apiVersion: example.com/v1
+kind: SampleCustomResource
+metadata:
+  name: "my-sampleowner"
+spec:
+  data: "hello"

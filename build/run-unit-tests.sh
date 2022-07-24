@@ -1,8 +1,9 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 # Copyright Contributors to the Open Cluster Management project
 
 _script_dir=$(dirname "$0")
 mkdir -p test/unit/coverage
+
 echo 'mode: atomic' > test/unit/coverage/cover.out
 echo '' > test/unit/coverage/cover.tmp
 echo -e "${GOPACKAGES// /\\n}" | xargs -n1 -I{} $_script_dir/test-package.sh {} ${GOPACKAGES// /,}

@@ -1,6 +1,0 @@
-# Copyright Contributors to the Open Cluster Management project
-
-apiVersion: fake/v1
-kind: Fake
-metadata:
-  name: {{ .Values }}
