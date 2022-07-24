@@ -2,4 +2,3 @@
 {{- $result := "hello" }}
 {{- $result }}
 {{- end }}
-hello world
