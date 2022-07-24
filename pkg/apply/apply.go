@@ -111,15 +111,19 @@ func (a *Applier) ApplyDirectly(
 	recorder := events.NewInMemoryRecorder(helpers.GetExampleHeader())
 	output := make([]string, 0)
 	//Apply resources
-	clients := resourceapply.NewClientHolder().WithAPIExtensionsClient(a.apiExtensionsClient).WithDynamicClient(a.dynamicClient).WithKubernetes(a.kubeClient)
-	resourceResults := resourceapply.ApplyDirectly(a.context, clients, recorder, a.cache, func(name string) ([]byte, error) {
-		out, err := a.MustTemplateAsset(reader, values, headerFile, name)
-		if err != nil {
-			return nil, err
-		}
-		output = append(output, string(out))
-		return out, nil
-	}, files...)
+	clients := resourceapply.NewClientHolder().
+		WithAPIExtensionsClient(a.apiExtensionsClient).
+		WithDynamicClient(a.dynamicClient).
+		WithKubernetes(a.kubeClient)
+	resourceResults := resourceapply.
+		ApplyDirectly(a.context, clients, recorder, a.cache, func(name string) ([]byte, error) {
+			out, err := a.MustTemplateAsset(reader, values, headerFile, name)
+			if err != nil {
+				return nil, err
+			}
+			output = append(output, string(out))
+			return out, nil
+		}, files...)
 	//Check errors
 	for _, result := range resourceResults {
 		if result.Error != nil && !IsEmptyAsset(result.Error) {
@@ -246,7 +250,10 @@ func getTemplate(templateName string, customFuncMap template.FuncMap) *template.
 }
 
 //MustTemplateAssets render list of files
-func (a *Applier) MustTemplateAssets(reader asset.ScenarioReader, values interface{}, headerFile string, files ...string) ([]string, error) {
+func (a *Applier) MustTemplateAssets(reader asset.ScenarioReader,
+	values interface{},
+	headerFile string,
+	files ...string) ([]string, error) {
 	output := make([]string, 0)
 	for _, name := range files {
 		if name == headerFile {
@@ -266,10 +273,13 @@ func (a *Applier) MustTemplateAssets(reader asset.ScenarioReader, values interfa
 
 //MustTemplateAsset generates textual output for a template file name.
 //The headerfile will be added to each file.
-//Usually it contains nested template definitions as described https://golang.org/pkg/text/template/#hdr-Nested_template_definitions
+//Usually it contains nested template definitions as described
+// https://golang.org/pkg/text/template/#hdr-Nested_template_definitions
 //This allows to add functions which can be use in each file.
 //The values object will be used to render the template
-func (a *Applier) MustTemplateAsset(reader asset.ScenarioReader, values interface{}, headerFile, name string) ([]byte, error) {
+func (a *Applier) MustTemplateAsset(reader asset.ScenarioReader,
+	values interface{},
+	headerFile, name string) ([]byte, error) {
 	tmpl := getTemplate(name, a.templateFuncMap)
 	h := []byte{}
 	var err error

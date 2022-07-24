@@ -20,5 +20,7 @@ func NewApplierFlags(f cmdutil.Factory) *ApplierFlags {
 	}
 }
 
+// placeHolder to add generic flags for the applier
+// Dryrun and Timeout options are not used in all commands (ie:render)
 func (f *ApplierFlags) AddFlags(flags *pflag.FlagSet) {
 }
