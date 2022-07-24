@@ -25,8 +25,8 @@ func TestGetExampleHeader(t *testing.T) {
 		},
 		{
 			name: "not-defined",
-			arg0: "cm",
-			want: "cm",
+			arg0: "applier",
+			want: "applier",
 		},
 	}
 	for _, tt := range tests {
