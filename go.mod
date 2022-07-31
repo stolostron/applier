@@ -4,12 +4,14 @@ go 1.18
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
+	github.com/apg/patter v0.0.0-20160930163000-bd185be70ac8
 	github.com/ghodss/yaml v1.0.0
 	github.com/onsi/ginkgo/v2 v2.1.3
 	github.com/onsi/gomega v1.19.0
 	github.com/openshift/library-go v0.0.0-20220713145611-ca167a8bd342
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5
+	github.com/wadey/gocovmerge v0.0.0-20160331181800-b5bfa59ec0ad
 	k8s.io/api v0.24.3
 	k8s.io/apiextensions-apiserver v0.24.0
 	k8s.io/apimachinery v0.24.3
@@ -89,6 +91,7 @@ require (
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
+	golang.org/x/tools v0.1.10-0.20220218145154-897bd77cd717 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
