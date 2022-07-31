@@ -1,8 +1,12 @@
 [comment]: # ( Copyright Contributors to the Open Cluster Management project )
 
+# IMPORTANT
+
+This is the v2 version of the applier which took a totaly different approach to create and update resources on kubebernetes and it is not compatible with the v1 version. Now the applier relies on the openshift/libragy.go to apply the rendered files on kubeberentes.
+You can fork the V1 latest version if you want to continue to improve it or switch to the V2 version.
 # Applier
 
-The applier applies templated resources on kubebernetes. It can be use as a CLI or as a package.
+The applier applies templated resources on kubebernetes. It can be use as a CLI or as a package in your code allowing you to apply embeded templates to your clusters.
 ## Introduction to template
 
 The template supports the [text/template](https://golang.org/pkg/text/template/) framework and so you can use statements defined in that framework.
@@ -32,7 +36,18 @@ To get the usage, run:
 ```
 [oc|kubectl] applier -h 
 ```
-## Go Package
+
+For example you can run:
+
+```bash
+applier apply core-resources --path ./examples/simple --values ./examples/values.yaml
+```
+or
+```bash
+applier render --path ./examples/simple --values ./examples/values.yaml | kubectl apply -f - 
+```
+
+## Packages
 ### Methods
 
 The package provides functions to apply or render resources. These functions must be called on a [Applier](hpkg/apply/apply.go#L133). An Applier can be build using the function NewApplierBuilder as follow:
