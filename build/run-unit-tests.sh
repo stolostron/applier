@@ -9,15 +9,15 @@ echo '' > test/unit/coverage/coverage.tmp
 echo -e "${GOPACKAGES// /\\n}" | xargs -n1 -I{} $_script_dir/test-package.sh {} ${GOPACKAGES// /,}
 
 echo "Calculate coverage"
-if [[ -f "test/unit/coverage/coverage.out" ]]; then
-    # echo "Coverage file test/unit/coverage/coverage.out does not exist"
-    # exit 0
-    COVERAGE=$(go tool cover -func=test/unit/coverage/coverage.out | grep "total:" | awk '{ print $3 }' | sed 's/[][()><%]/ /g')
-    echo "-------------------------------------------------------------------------"
-    echo "TOTAL COVERAGE IS ${COVERAGE}%"
-    echo "-------------------------------------------------------------------------"
+# if [[ -f "test/unit/coverage/coverage.out" ]]; then
+#     echo "Coverage file test/unit/coverage/coverage.out does not exist"
+#     exit 0
+# fi
 
-    go tool cover -html=test/unit/coverage/coverage.out -o=test/unit/coverage/coverage.html
-    echo "test/unit/coverage/coverage.html generated"
-fi
+COVERAGE=$(go tool cover -func=test/unit/coverage/coverage.out | grep "total:" | awk '{ print $3 }' | sed 's/[][()><%]/ /g')
+echo "-------------------------------------------------------------------------"
+echo "TOTAL COVERAGE IS ${COVERAGE}%"
+echo "-------------------------------------------------------------------------"
 
+go tool cover -html=test/unit/coverage/coverage.out -o=test/unit/coverage/coverage.html
+echo "test/unit/coverage/coverage.html generated"
