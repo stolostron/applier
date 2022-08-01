@@ -38,3 +38,4 @@ if [ -f test/unit/coverage/coverage.out.tmp ]; then
 
 fi
 
+echo -e "\nEnd of Testing "$_package

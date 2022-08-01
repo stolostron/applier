@@ -8,7 +8,7 @@ echo 'mode: atomic' > test/unit/coverage/coverage.out
 echo '' > test/unit/coverage/coverage.tmp
 echo -e "${GOPACKAGES// /\\n}" | xargs -n1 -I{} $_script_dir/test-package.sh {} ${GOPACKAGES// /,}
 
-ls test/unit/coverage/coverage.out
+echo "Calculate coverage"
 if [ ! -f test/unit/coverage/coverage.out ]; then
     echo "Coverage file test/unit/coverage/coverage.out does not exist"
     exit 0
