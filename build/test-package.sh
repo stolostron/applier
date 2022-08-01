@@ -24,7 +24,7 @@ mkdir -p $_tap_out_dir
 # Run tests
 # DO NOT USE -coverpkg=./...
 pwd
-ls $_package
+ls pkg/apply
 go test -v -cover -coverpkg=$_cover_pkgs -covermode=atomic -coverprofile=test/unit/coverage/coverage.out.tmp $_package 2> >( grep -v "warning: no packages being tested depend on" >&2 ) | $GOPATH/bin/patter | tee $_tap_out_dir/$_tap_name.tap | grep -v "TAP version 13" | grep -v ": PASS:" | grep -v -i "# /us"
 
 # Merge coverage files
