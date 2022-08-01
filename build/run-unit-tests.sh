@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -x
 # Copyright Contributors to the Open Cluster Management project
 
 _script_dir=$(dirname "$0")
