@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 
 # Copyright Contributors to the Open Cluster Management project
 
