@@ -6,8 +6,8 @@
 _OS=$(go env GOOS)
 _ARCH=$(go env GOARCH)
 
-if ! which patter > /dev/null;     then echo "Installing patter ..."; go install github.com/apg/patter; fi
-if ! which gocovmerge > /dev/null; then echo "Installing gocovmerge..."; go install github.com/wadey/gocovmerge; fi
+if ! which patter > /dev/null;     then echo "Installing patter ..."; pushd $(mktemp -d) && GO111MODULE=off go install github.com/apg/patter && popd; fi
+if ! which gocovmerge > /dev/null; then echo "Installing gocovmerge..."; pushd $(mktemp -d) && GO111MODULE=off go install github.com/wadey/gocovmerge && popd; fi
 
 # Build tools
 
