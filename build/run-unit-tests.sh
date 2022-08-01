@@ -9,7 +9,7 @@ echo '' > test/unit/coverage/coverage.tmp
 echo -e "${GOPACKAGES// /\\n}" | xargs -n1 -I{} $_script_dir/test-package.sh {} ${GOPACKAGES// /,}
 
 echo "Calculate coverage"
-if [ ! -f test/unit/coverage/coverage.out ]; then
+if [[ ! -f test/unit/coverage/coverage.out ]]; then
     echo "Coverage file test/unit/coverage/coverage.out does not exist"
     exit 0
 fi
