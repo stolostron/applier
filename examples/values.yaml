@@ -1,6 +1,4 @@
-#!/bin/bash -e
-
-# Copyright (c) 2020 Red Hat, Inc.
 # Copyright Contributors to the Open Cluster Management project
-
-make check
+simple:
+  ServiceAccount: my-sa
+  Namespace: my-ns
