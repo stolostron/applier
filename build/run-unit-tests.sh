@@ -9,10 +9,10 @@ echo '' > test/unit/coverage/coverage.tmp
 echo -e "${GOPACKAGES// /\\n}" | xargs -n1 -I{} $_script_dir/test-package.sh {} ${GOPACKAGES// /,}
 
 ls test/unit/coverage/coverage.out
-# if [ ! -f test/unit/coverage/coverage.out ]; then
-#     echo "Coverage file test/unit/coverage/coverage.out does not exist"
-#     exit 0
-# fi
+if [ ! -f test/unit/coverage/coverage.out ]; then
+    echo "Coverage file test/unit/coverage/coverage.out does not exist"
+    exit 0
+fi
 
 COVERAGE=$(go tool cover -func=test/unit/coverage/coverage.out | grep "total:" | awk '{ print $3 }' | sed 's/[][()><%]/ /g')
 echo "-------------------------------------------------------------------------"
