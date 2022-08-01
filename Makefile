@@ -20,6 +20,7 @@ export PROJECT_DIR            = $(shell 'pwd')
 export PROJECT_NAME			  = $(shell basename ${PROJECT_DIR})
 
 export GOPACKAGES   = $(shell go list ./... | grep -v /vendor | grep -v /build | grep -v /test | grep -v /scenario )
+export GOPACKAGES = github.com/stolostron/applier/pkg/apply
 
 .PHONY: clean
 clean: clean-test

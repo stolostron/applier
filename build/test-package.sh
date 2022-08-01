@@ -11,7 +11,7 @@ _cover_pkgs=$2
 echo -e "\nTesting package $_package"
 
 # Make sure temporary files do not exist
-rm -f test/unit/coverage/cover.tmp
+rm -f test/unit/coverage/coverage.tmp
 
 # Support for TAP output
 _package_base=${PROJECT_DIR/$GOPATH\/src\/}  # TODO need a better solution since $(go list) doesn't work any more (won't work with go 1.11)
