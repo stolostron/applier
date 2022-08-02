@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	appliercli "github.com/stolostron/applier"
+	appliercli "github.com/stolostron/applier/version"
 )
 
 func (o *Options) complete(cmd *cobra.Command, args []string) (err error) {
