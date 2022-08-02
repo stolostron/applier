@@ -420,9 +420,15 @@ func WriteOutput(fileName string, output []string) (err error) {
 	if fileName == "" {
 		return nil
 	}
-	f, err := os.Create(filepath.Clean(fileName))
-	if err != nil {
-		return err
+	var f *os.File
+	if fileName == os.Stdout.Name() {
+		f = os.Stdout
+	} else {
+		var err error
+		f, err = os.Create(filepath.Clean(fileName))
+		if err != nil {
+			return err
+		}
 	}
 	// defer f.Close()
 	for _, s := range output {
