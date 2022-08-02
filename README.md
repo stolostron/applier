@@ -2,8 +2,8 @@
 
 # IMPORTANT
 
-This is the v2 version of the applier which took a totaly different approach to create and update resources on kubebernetes and it is not compatible with the v1 version. Now the applier relies on the openshift/libragy.go to apply the rendered files on kubeberentes.
-You can fork the V1 latest version if you want to continue to improve it or switch to the V2 version.
+This is the v1.1.0 version of the applier which took a totaly different approach to create and update resources on kubebernetes and it is not compatible with the v1.0.1 version. Now the applier relies on the openshift/libragy.go to apply the rendered files on kubeberentes.
+You can fork the V1.0.1 latest version if you want to continue to improve it or switch to the V1.1.0 version.
 # Applier
 
 The applier applies templated resources on kubebernetes. It can be use as a CLI or as a package in your code allowing you to apply embeded templates to your clusters.
@@ -27,7 +27,6 @@ A Header file can be specified and if so will be included at the beginning of ea
 
 A command-line is available to apply yaml files in a given directory. 
 To generate it run either: 
-- `make build`, the `applier` executable will be in the `$GOPATH/bin` directory
 - `make install` to install from your local environment
 - `make oc-plugin` to install as a `oc` plugin
 - `make kubectl-plugin` to install as a `kubectl` plugin
