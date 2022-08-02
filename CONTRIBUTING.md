@@ -54,3 +54,15 @@ make test
 ```
 
 Now, you can follow the [getting started guide](./README.md#getting-started) to work with this repository.
+
+## Make a release (Owners only)
+
+1. Create a branch
+2. run `make doc-help`
+3. Update the VERSION.txt with the semver of the new release (if not yet done)
+4. Create a PR and merge it
+5. Run `make release` on the main branch
+6. Monitor the github action.
+7. Go to releases on github
+8. Review the summary.
+9. Publish
