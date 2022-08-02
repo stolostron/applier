@@ -1,6 +1,6 @@
 // Copyright Contributors to the Open Cluster Management project
 
-package appliercli
+package version
 
 import (
 	_ "embed"
