@@ -1,0 +1,43 @@
+# Copyright Contributors to the Open Cluster Management project
+
+apiVersion: krew.googlecontainertools.github.com/v1alpha2
+kind: Plugin
+metadata:
+  name: applier
+spec:
+  version: {{ .TagName }}
+  homepage: https://github.com/stolostron/applier
+  shortDescription: Provides an apply and render commands for template based resources.
+  description: |
+    This plugin allows you apply on kubernetes template resources (golang text/template) or just render them.
+  platforms:
+  - selector:
+      matchLabels:
+        os: darwin
+        arch: amd64
+    {{addURIAndSha "https://github.com/stolostron/applier/releases/download/{{ .TagName }}/applier_darwin_amd64.tar.gz" .TagName }}
+    bin: applier
+  - selector:
+      matchLabels:
+        os: darwin
+        arch: arm64
+    {{addURIAndSha "https://github.com/stolostron/applier/releases/download/{{ .TagName }}/applier_darwin_arm64.tar.gz" .TagName }}
+    bin: applier
+  - selector:
+      matchLabels:
+        os: linux
+        arch: amd64
+    {{addURIAndSha "https://github.com/stolostron/applier/releases/download/{{ .TagName }}/applier_linux_amd64.tar.gz" .TagName }}
+    bin: applier
+  - selector:
+      matchLabels:
+        os: linux
+        arch: arm64
+    {{addURIAndSha "https://github.com/stolostron/applier/releases/download/{{ .TagName }}/applier_linux_arm64.tar.gz" .TagName }}
+    bin: applier
+  - selector:
+      matchLabels:
+        os: windows
+        arch: amd64
+    {{addURIAndSha "https://github.com/stolostron/applier/releases/download/{{ .TagName }}/applier_windows_amd64.zip" .TagName }}
+    bin: applier.exe

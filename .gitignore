@@ -22,3 +22,6 @@ test/functional/coverage
 kind_kubeconfig.yaml
 test/functional/functional.test
 
+/docs/tools/applier.go
+/docs/help.tar.gz
+/docs/help.zip

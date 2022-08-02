@@ -16,7 +16,6 @@ apply templated resources
       --client-key string                Path to a client key file for TLS
       --cluster string                   The name of the kubeconfig cluster to use
       --context string                   The name of the kubeconfig context to use
-      --dry-run                          If set the generated resources will be displayed but not applied
   -h, --help                             help for applier
       --insecure-skip-tls-verify         If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure
       --kubeconfig string                Path to the kubeconfig file to use for CLI requests.
@@ -34,7 +33,6 @@ apply templated resources
       --skip-headers                     If true, avoid header prefixes in the log messages
       --skip-log-headers                 If true, avoid headers when opening log files
       --stderrthreshold severity         logs at or above this threshold go to stderr (default 2)
-      --timeout int                      extend timeout from 300 secounds  (default 300)
       --tls-server-name string           Server name to use for server certificate validation. If it is not provided, the hostname used to contact the server is used
       --token string                     Bearer token for authentication to the API server
       --user string                      The name of the kubeconfig user to use
