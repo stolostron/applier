@@ -14,7 +14,7 @@ import (
 
 var example = `
 # Apply custom-resources templates
-%[1]s apply custom-resources --values values.yaml --path template_path1 tempalte_path2...
+%[1]s apply custom-resources --values values.yaml --path template_path1 --path tempalte_path2...
 `
 
 // NewCmd ...
@@ -44,7 +44,7 @@ func NewCmd(applierFlags *genericclioptionsapplier.ApplierFlags, streams generic
 	}
 
 	cmd.Flags().StringVar(&o.ValuesPath, "values", "", "The files containing the values")
-	cmd.Flags().StringArrayVar(&o.Paths, "paths", []string{}, "The list of template paths")
+	cmd.Flags().StringArrayVar(&o.Paths, "path", []string{}, "The list of template paths")
 	cmd.Flags().StringVar(&o.OutputFile, "output-file", "", "The generated resources will be copied in the specified file")
 	return cmd
 }

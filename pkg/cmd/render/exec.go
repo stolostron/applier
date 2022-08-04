@@ -63,6 +63,9 @@ func (o *Options) Run() error {
 		return apply.WriteOutput(o.OutputFile, output)
 	} else {
 		for _, name := range files {
+			if name == o.Header {
+				continue
+			}
 			output, err := applier.MustTemplateAsset(reader, o.Values, o.Header, name)
 			if err != nil {
 				return err

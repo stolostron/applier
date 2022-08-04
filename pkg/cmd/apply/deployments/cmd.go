@@ -14,7 +14,7 @@ import (
 
 var example = `
 # Apply deployments templates
-%[1]s apply deployments --values values.yaml --path template_path1 tempalte_path2...
+%[1]s apply deployments --values values.yaml --path template_path1 --path tempalte_path2...
 `
 
 // NewCmd ...
@@ -45,7 +45,7 @@ func NewCmd(applierFlags *genericclioptionsapplier.ApplierFlags, streams generic
 
 	cmd.Flags().StringVar(&o.ValuesPath, "values", "", "The files containing the values")
 	cmd.Flags().StringVar(&o.Header, "header", "", "The files which will be added to each template")
-	cmd.Flags().StringArrayVar(&o.Paths, "paths", []string{}, "The list of template paths")
+	cmd.Flags().StringArrayVar(&o.Paths, "path", []string{}, "The list of template paths")
 	cmd.Flags().BoolVar(&o.ApplierFlags.DryRun, "dry-run", false, "If set the generated resources will be displayed but not applied")
 	cmd.Flags().IntVar(&o.ApplierFlags.Timeout, "timeout", 300, "extend timeout from 300 secounds ")
 	cmd.Flags().StringVar(&o.OutputFile, "output-file", "", "The generated resources will be copied in the specified file")
