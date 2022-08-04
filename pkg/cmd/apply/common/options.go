@@ -17,8 +17,8 @@ type Options struct {
 	ApplierFlags *genericclioptionsapplier.ApplierFlags
 	// Header specify a file that needs to be added at the beginning of each template
 	Header string
-	//A list of Paths
-	Paths         []string
+	//A list of Path
+	Path          []string
 	ValuesPath    string
 	Values        map[string]interface{}
 	ResourcesType ResourceType
