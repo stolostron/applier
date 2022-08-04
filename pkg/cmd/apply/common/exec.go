@@ -60,7 +60,6 @@ func (o *Options) Run() error {
 	}
 	applyBuilder := apply.NewApplierBuilder().
 		WithClient(kubeClient, apiExtensionsClient, dynamicClient)
-	applier := applyBuilder.Build()
 	reader := asset.NewDirectoriesReader(o.Header, o.Paths)
 	files, err := reader.AssetNames([]string{o.Header})
 	if err != nil {
@@ -69,10 +68,16 @@ func (o *Options) Run() error {
 	output := make([]string, 0)
 	switch o.ResourcesType {
 	case CoreResources:
+		if o.SortOnKind {
+			applyBuilder = applyBuilder.WithKindOrder(apply.DefaultCreateUpdateKindsOrder)
+		}
+		applier := applyBuilder.Build()
 		output, err = applier.ApplyDirectly(reader, o.Values, o.ApplierFlags.DryRun, o.Header, files...)
 	case Deployments:
+		applier := applyBuilder.Build()
 		output, err = applier.ApplyDeployments(reader, o.Values, o.ApplierFlags.DryRun, o.Header, files...)
 	case CustomResources:
+		applier := applyBuilder.Build()
 		output, err = applier.ApplyCustomResources(reader, o.Values, o.ApplierFlags.DryRun, o.Header, files...)
 	}
 	if err != nil {

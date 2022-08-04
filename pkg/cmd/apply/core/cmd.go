@@ -46,5 +46,6 @@ func NewCmd(applierFlags *genericclioptionsapplier.ApplierFlags, streams generic
 	cmd.Flags().StringVar(&o.ValuesPath, "values", "", "The files containing the values")
 	cmd.Flags().StringArrayVar(&o.Paths, "paths", []string{}, "The list of template paths")
 	cmd.Flags().StringVar(&o.OutputFile, "output-file", "", "The generated resources will be copied in the specified file")
+	cmd.Flags().BoolVar(&o.SortOnKind, "sort-on-kind", false, "If set the files will be sorted by their kind")
 	return cmd
 }

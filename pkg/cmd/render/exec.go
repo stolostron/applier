@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/ghodss/yaml"
 	"github.com/spf13/cobra"
@@ -45,15 +46,37 @@ func (o *Options) Validate() error {
 
 func (o *Options) Run() error {
 	applyBuilder := apply.NewApplierBuilder()
+	if o.SortOnKind {
+		applyBuilder = applyBuilder.WithKindOrder(apply.DefaultCreateUpdateKindsOrder)
+	}
 	applier := applyBuilder.Build()
 	reader := asset.NewDirectoriesReader(o.Header, o.Paths)
 	files, err := reader.AssetNames([]string{o.Header})
 	if err != nil {
 		return err
 	}
-	output, err := applier.MustTemplateAssets(reader, o.Values, o.Header, files...)
-	if err != nil {
-		return err
+	if len(o.OutputDir) == 0 {
+		output, err := applier.MustTemplateAssets(reader, o.Values, o.Header, files...)
+		if err != nil {
+			return err
+		}
+		return apply.WriteOutput(o.OutputFile, output)
+	} else {
+		for _, name := range files {
+			output, err := applier.MustTemplateAsset(reader, o.Values, o.Header, name)
+			if err != nil {
+				return err
+			}
+			newFileName := filepath.Join(o.OutputDir, name)
+			err = os.MkdirAll(filepath.Dir(newFileName), 0700)
+			if err != nil {
+				return err
+			}
+			err = ioutil.WriteFile(newFileName, output, 0600)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
 	}
-	return apply.WriteOutput(o.OutputFile, output)
 }
