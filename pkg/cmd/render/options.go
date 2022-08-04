@@ -9,8 +9,8 @@ import (
 type Options struct {
 	// Header specify a file that needs to be added at the beginning of each template
 	Header string
-	//A list of Path
-	Path       []string
+	//A list of Paths
+	Paths      []string
 	ValuesPath string
 	Values     map[string]interface{}
 	OutputFile string

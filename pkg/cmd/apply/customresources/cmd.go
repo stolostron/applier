@@ -44,7 +44,7 @@ func NewCmd(applierFlags *genericclioptionsapplier.ApplierFlags, streams generic
 	}
 
 	cmd.Flags().StringVar(&o.ValuesPath, "values", "", "The files containing the values")
-	cmd.Flags().StringArrayVar(&o.Path, "path", []string{}, "The list of template paths")
+	cmd.Flags().StringArrayVar(&o.Paths, "path", []string{}, "The list of template paths")
 	cmd.Flags().StringVar(&o.OutputFile, "output-file", "", "The generated resources will be copied in the specified file")
 	return cmd
 }

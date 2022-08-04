@@ -32,7 +32,7 @@ func (o *Options) Complete(cmd *cobra.Command, args []string) (err error) {
 }
 
 func (o *Options) Validate() error {
-	reader := asset.NewDirectoriesReader(o.Header, o.Path)
+	reader := asset.NewDirectoriesReader(o.Header, o.Paths)
 
 	assetNames, err := reader.AssetNames(nil)
 	if err != nil {
@@ -50,7 +50,7 @@ func (o *Options) Run() error {
 		applyBuilder = applyBuilder.WithKindOrder(apply.DefaultCreateUpdateKindsOrder)
 	}
 	applier := applyBuilder.Build()
-	reader := asset.NewDirectoriesReader(o.Header, o.Path)
+	reader := asset.NewDirectoriesReader(o.Header, o.Paths)
 	files, err := reader.AssetNames([]string{o.Header})
 	if err != nil {
 		return err
