@@ -45,6 +45,7 @@ or
 ```bash
 applier render --path ./examples/simple --values ./examples/values.yaml | kubectl apply -f - 
 ```
+the option `--sort-on-kind` will sort the files based on the kind. For example, namespace will be placed before serviceaccount.
 
 ## Packages
 ### Methods

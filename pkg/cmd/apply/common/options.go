@@ -24,6 +24,7 @@ type Options struct {
 	ResourcesType ResourceType
 	//The file to output the resources will be sent to the file.
 	OutputFile string
+	SortOnKind bool
 }
 
 func NewOptions(applierFlags *genericclioptionsapplier.ApplierFlags, streams genericclioptions.IOStreams) *Options {

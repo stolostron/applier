@@ -255,6 +255,13 @@ func (a *Applier) MustTemplateAssets(reader asset.ScenarioReader,
 	headerFile string,
 	files ...string) ([]string, error) {
 	output := make([]string, 0)
+	var err error
+	if a.kindOrder != nil {
+		files, err = a.Sort(reader, values, headerFile, files...)
+		if err != nil {
+			return output, err
+		}
+	}
 	for _, name := range files {
 		if name == headerFile {
 			continue

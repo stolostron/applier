@@ -24,6 +24,7 @@ type Applier struct {
 	context             context.Context
 	controller          *bool
 	blockOwnerDeletion  *bool
+	kindOrder           KindsOrder
 }
 
 //ApplierBuilder a builder to build the applier
@@ -47,6 +48,8 @@ type iApplierBuilder interface {
 	WithCache(cache resourceapply.ResourceCache) *ApplierBuilder
 	//WithContext use a context or use a new one if not provided
 	WithContext(ctx context.Context) *ApplierBuilder
+	//WithKindOrder define in which order to the files must be applied
+	WithKindOrder(kindOrder KindsOrder) *ApplierBuilder
 	//GetKubeClient returns the kubeclient
 	GetKubeClient() kubernetes.Interface
 	//GetAPIExtensionClient returns the APIExtensionClient
@@ -114,6 +117,11 @@ func (a *ApplierBuilder) WithContext(ctx context.Context) *ApplierBuilder {
 	return a
 }
 
+//WithKindOrder defines the order in which the files must be applied.
+func (a *ApplierBuilder) WithKindOrder(kindsOrder KindsOrder) *ApplierBuilder {
+	a.applier.kindOrder = kindsOrder
+	return a
+}
 func (a *ApplierBuilder) GetKubeClient() kubernetes.Interface {
 	return a.applier.kubeClient
 }

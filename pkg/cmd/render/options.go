@@ -14,6 +14,8 @@ type Options struct {
 	ValuesPath string
 	Values     map[string]interface{}
 	OutputFile string
+	SortOnKind bool
+	OutputDir  string
 }
 
 func NewOptions(applierFlags *genericclioptionsapplier.ApplierFlags, streams genericclioptions.IOStreams) *Options {
