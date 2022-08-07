@@ -15,7 +15,7 @@ applier render [flags]
 ```
 
 # render templates
-applier render --values values.yaml --path template_path1 tempalte_path2...
+applier render --values values.yaml --path template_path1 --path tempalte_path2...
 
 ```
 
@@ -24,8 +24,10 @@ applier render --values values.yaml --path template_path1 tempalte_path2...
 ```
       --header string        The files which will be added to each template
   -h, --help                 help for render
+      --output-dir string    The directory were to write the rendered files
       --output-file string   The generated resources will be copied in the specified file
-      --paths stringArray    The list of template paths
+      --path stringArray     The list of template paths
+      --sort-on-kind         If set the files will be sorted by their kind (default true) (default true)
       --values string        The files containing the values
 ```
 

@@ -15,7 +15,7 @@ applier apply deployments [flags]
 ```
 
 # Apply deployments templates
-applier apply deployments --values values.yaml --path template_path1 tempalte_path2...
+applier apply deployments --values values.yaml --path template_path1 --path tempalte_path2...
 
 ```
 
@@ -26,7 +26,7 @@ applier apply deployments --values values.yaml --path template_path1 tempalte_pa
       --header string        The files which will be added to each template
   -h, --help                 help for deployments
       --output-file string   The generated resources will be copied in the specified file
-      --paths stringArray    The list of template paths
+      --path stringArray     The list of template paths
       --timeout int          extend timeout from 300 secounds  (default 300)
       --values string        The files containing the values
 ```
