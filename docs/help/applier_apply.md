@@ -11,7 +11,7 @@ apply templates located in paths with a values.yaml, the list of path can be a p
 ```
 
 # Apply templates
-applier apply [core-resources|custom-resources|deployments] --values values.yaml --path template_path1 tempalte_path2...
+applier apply [core-resources|custom-resources|deployments] --values values.yaml --path template_path1 --path tempalte_path2...
 
 ```
 

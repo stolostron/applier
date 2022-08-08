@@ -15,7 +15,7 @@ applier apply core-resources [flags]
 ```
 
 # Apply core-resources templates
-applier apply core-resources --values values.yaml --path template_path1 tempalte_path2...
+applier apply core-resources --values values.yaml --path template_path1 --path tempalte_path2...
 
 ```
 
@@ -24,7 +24,8 @@ applier apply core-resources --values values.yaml --path template_path1 tempalte
 ```
   -h, --help                 help for core-resources
       --output-file string   The generated resources will be copied in the specified file
-      --paths stringArray    The list of template paths
+      --path stringArray     The list of template paths
+      --sort-on-kind         If set the files will be sorted by their kind (default true) (default true)
       --values string        The files containing the values
 ```
 

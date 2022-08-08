@@ -15,7 +15,7 @@ applier apply custom-resources [flags]
 ```
 
 # Apply custom-resources templates
-applier apply custom-resources --values values.yaml --path template_path1 tempalte_path2...
+applier apply custom-resources --values values.yaml --path template_path1 --path tempalte_path2...
 
 ```
 
@@ -24,7 +24,7 @@ applier apply custom-resources --values values.yaml --path template_path1 tempal
 ```
   -h, --help                 help for custom-resources
       --output-file string   The generated resources will be copied in the specified file
-      --paths stringArray    The list of template paths
+      --path stringArray     The list of template paths
       --values string        The files containing the values
 ```
 
