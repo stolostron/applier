@@ -22,6 +22,7 @@ applier apply custom-resources --values values.yaml --path template_path1 --path
 ### Options
 
 ```
+      --dry-run              If set the resources will not be applied
   -h, --help                 help for custom-resources
       --output-file string   The generated resources will be copied in the specified file
       --path stringArray     The list of template paths

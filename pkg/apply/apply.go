@@ -1,4 +1,4 @@
-// Copyright Contributors to the Open Cluster Management project
+// Copyright Red Hat
 package apply
 
 import (
@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"text/template"
 
@@ -31,10 +30,6 @@ import (
 	"github.com/openshift/library-go/pkg/operator/resource/resourcemerge"
 )
 
-const (
-	ErrorEmptyAssetAfterTemplating = "ERROR_EMPTY_ASSET_AFTER_TEMPLATING"
-)
-
 var (
 	genericScheme = runtime.NewScheme()
 	genericCodecs = serializer.NewCodecFactory(genericScheme)
@@ -43,6 +38,71 @@ var (
 
 func (a *Applier) GetCache() resourceapply.ResourceCache {
 	return a.cache
+}
+
+func (a *Applier) Apply(reader asset.ScenarioReader,
+	values interface{},
+	dryRun bool,
+	headerFile string,
+	files ...string) ([]string, error) {
+	memFSReader, err := helpers.SplitFiles(reader, files)
+	if err != nil {
+		return nil, err
+	}
+	files, err = memFSReader.AssetNames([]string{})
+	if err != nil {
+		return nil, err
+	}
+
+	filesInfo, err := a.GetFileInfo(memFSReader, values, headerFile, files...)
+	if err != nil {
+		return nil, err
+	}
+	output := make([]string, 0)
+	filesDirectly, filesCustomResource, filesDeployment := splitFiles(files, filesInfo)
+	if len(filesDirectly) != 0 {
+		out, err := a.ApplyDirectly(memFSReader, values, dryRun, headerFile, filesDirectly...)
+		if err != nil {
+			return output, err
+		}
+		output = append(output, out...)
+	}
+	if len(filesCustomResource) != 0 {
+		out, err := a.ApplyCustomResources(memFSReader, values, dryRun, headerFile, filesCustomResource...)
+		if err != nil {
+			return output, err
+		}
+		output = append(output, out...)
+	}
+	if len(filesDeployment) != 0 {
+		out, err := a.ApplyDeployments(memFSReader, values, dryRun, headerFile, filesDeployment...)
+		if err != nil {
+			return output, err
+		}
+		output = append(output, out...)
+	}
+	return output, nil
+}
+
+func splitFiles(files []string, filesInfo []FileInfo) (filesDirectly,
+	filesCustomResource,
+	filesDeployment []string) {
+	filesDirectly = make([]string, 0)
+	filesCustomResource = make([]string, 0)
+	filesDeployment = make([]string, 0)
+	for _, fileInfo := range filesInfo {
+		resourceVersion := strings.Split(fileInfo.APIVersion, "/")
+		if len(resourceVersion) == 1 {
+			filesDirectly = append(filesDirectly, fileInfo.FileName)
+			continue
+		}
+		if resourceVersion[0] == "apps" && fileInfo.Kind == "Deployment" {
+			filesDeployment = append(filesDeployment, fileInfo.FileName)
+			continue
+		}
+		filesCustomResource = append(filesCustomResource, fileInfo.FileName)
+	}
+	return
 }
 
 //ApplyDeployments applies a appsv1.Deployment template
@@ -57,7 +117,7 @@ func (a *Applier) ApplyDeployments(
 	for _, name := range files {
 		deployment, err := a.ApplyDeployment(reader, values, dryRun, headerFile, name)
 		if err != nil {
-			if IsEmptyAsset(err) {
+			if helpers.IsEmptyAsset(err) {
 				continue
 			}
 			return output, err
@@ -115,6 +175,11 @@ func (a *Applier) ApplyDirectly(
 		WithAPIExtensionsClient(a.apiExtensionsClient).
 		WithDynamicClient(a.dynamicClient).
 		WithKubernetes(a.kubeClient)
+	var err error
+	files, err = a.Sort(reader, values, headerFile, files...)
+	if err != nil {
+		return nil, err
+	}
 	resourceResults := resourceapply.
 		ApplyDirectly(a.context, clients, recorder, a.cache, func(name string) ([]byte, error) {
 			out, err := a.MustTemplateAsset(reader, values, headerFile, name)
@@ -126,7 +191,7 @@ func (a *Applier) ApplyDirectly(
 		}, files...)
 	//Check errors
 	for _, result := range resourceResults {
-		if result.Error != nil && !IsEmptyAsset(result.Error) {
+		if result.Error != nil && !helpers.IsEmptyAsset(result.Error) {
 			return output, fmt.Errorf("%q (%T): %v", result.File, result.Type, result.Error)
 		}
 	}
@@ -144,7 +209,7 @@ func (a *Applier) ApplyCustomResources(
 	for _, name := range files {
 		asset, err := a.ApplyCustomResource(reader, values, dryRun, headerFile, name)
 		if err != nil {
-			if IsEmptyAsset(err) {
+			if helpers.IsEmptyAsset(err) {
 				continue
 			}
 			return output, err
@@ -220,8 +285,8 @@ func (a *Applier) ApplyCustomResource(
 }
 
 //bytesToUnstructured converts an asset to unstructured.
-func bytesToUnstructured(reader asset.ScenarioReader, asset []byte) (*unstructured.Unstructured, error) {
-	j, err := reader.ToJSON(asset)
+func bytesToUnstructured(reader asset.ScenarioReader, assetContent []byte) (*unstructured.Unstructured, error) {
+	j, err := asset.ToJSON(assetContent)
 	if err != nil {
 		return nil, err
 	}
@@ -254,10 +319,17 @@ func (a *Applier) MustTemplateAssets(reader asset.ScenarioReader,
 	values interface{},
 	headerFile string,
 	files ...string) ([]string, error) {
+	memFSReader, err := helpers.SplitFiles(reader, files)
+	if err != nil {
+		return nil, err
+	}
 	output := make([]string, 0)
-	var err error
+	files, err = memFSReader.AssetNames([]string{})
+	if err != nil {
+		return nil, err
+	}
 	if a.kindOrder != nil {
-		files, err = a.Sort(reader, values, headerFile, files...)
+		files, err = a.Sort(memFSReader, values, headerFile, files...)
 		if err != nil {
 			return output, err
 		}
@@ -266,9 +338,9 @@ func (a *Applier) MustTemplateAssets(reader asset.ScenarioReader,
 		if name == headerFile {
 			continue
 		}
-		deploymentBytes, err := a.MustTemplateAsset(reader, values, headerFile, name)
+		deploymentBytes, err := a.MustTemplateAsset(memFSReader, values, headerFile, name)
 		if err != nil {
-			if IsEmptyAsset(err) {
+			if helpers.IsEmptyAsset(err) {
 				continue
 			}
 			return output, err
@@ -278,12 +350,12 @@ func (a *Applier) MustTemplateAssets(reader asset.ScenarioReader,
 	return output, nil
 }
 
-//MustTemplateAsset generates textual output for a template file name.
-//The headerfile will be added to each file.
-//Usually it contains nested template definitions as described
+// MustTemplateAsset generates textual output for a template file name.
+// The headerfile will be added to each file.
+// Usually it contains nested template definitions as described
 // https://golang.org/pkg/text/template/#hdr-Nested_template_definitions
-//This allows to add functions which can be use in each file.
-//The values object will be used to render the template
+// This allows to add functions which can be use in each file.
+// The values object will be used to render the template
 func (a *Applier) MustTemplateAsset(reader asset.ScenarioReader,
 	values interface{},
 	headerFile, name string) ([]byte, error) {
@@ -295,6 +367,33 @@ func (a *Applier) MustTemplateAsset(reader asset.ScenarioReader,
 		if err != nil {
 			return nil, err
 		}
+	}
+	hasMultipleAssets, err := helpers.HasMultipleAssets(reader, name)
+	if err != nil {
+		return nil, err
+	}
+	if hasMultipleAssets {
+		memFSReader, err := helpers.SplitFiles(reader, []string{name})
+		if err != nil {
+			return nil, err
+		}
+		files, err := memFSReader.AssetNames([]string{})
+		if err != nil {
+			return nil, err
+		}
+		rendered, err := a.MustTemplateAssets(memFSReader, values, headerFile, files...)
+		if err != nil {
+			return nil, err
+		}
+		out := make([]byte, 0)
+		for k, r := range rendered {
+			out = append(out, []byte(r)...)
+			if k == len(rendered)-1 {
+				break
+			}
+			out = append(out, []byte("\n---\n")...)
+		}
+		return []byte(out), nil
 	}
 	b, err := reader.Asset(name)
 	if err != nil {
@@ -316,8 +415,8 @@ func (a *Applier) MustTemplateAsset(reader asset.ScenarioReader,
 	}
 
 	//If the content is empty after rendering then returns an ErrorEmptyAssetAfterTemplating error.
-	if isEmpty(buf.Bytes()) {
-		return nil, fmt.Errorf("asset %s becomes %s", name, ErrorEmptyAssetAfterTemplating)
+	if helpers.IsEmpty(buf.Bytes()) {
+		return nil, fmt.Errorf("asset %s becomes %s", name, helpers.ErrorEmptyAssetAfterTemplating)
 	}
 
 	if a.owner != nil {
@@ -406,23 +505,6 @@ func addTypeInformationToObject(obj runtime.Object, scheme *runtime.Scheme) erro
 	return nil
 }
 
-//isEmpty check if a content is empty after removing comments and blank lines.
-func isEmpty(body []byte) bool {
-	//Remove comments
-	re := regexp.MustCompile("#.*")
-	bodyNoComment := re.ReplaceAll(body, nil)
-	//Remove blank lines
-	trim := strings.TrimSuffix(string(bodyNoComment), "\n")
-	trim = strings.TrimSpace(trim)
-
-	return len(trim) == 0
-}
-
-//IsEmptyAsset returns true if the error is ErrorEmptyAssetAfterTemplating
-func IsEmptyAsset(err error) bool {
-	return strings.Contains(err.Error(), ErrorEmptyAssetAfterTemplating)
-}
-
 func WriteOutput(fileName string, output []string) (err error) {
 	if fileName == "" {
 		return nil
@@ -439,12 +521,14 @@ func WriteOutput(fileName string, output []string) (err error) {
 	}
 	// defer f.Close()
 	for _, s := range output {
-		_, err := f.WriteString(fmt.Sprintf("%s\n---\n", s))
-		if err != nil {
-			if errClose := f.Close(); errClose != nil {
-				return fmt.Errorf("failed to close %v after err %v on writing", errClose, err)
+		if !(strings.HasSuffix(s, "---") || strings.HasSuffix(s, "---\n")) {
+			_, err := f.WriteString(fmt.Sprintf("%s\n---\n", s))
+			if err != nil {
+				if errClose := f.Close(); errClose != nil {
+					return fmt.Errorf("failed to close %v after err %v on writing", errClose, err)
+				}
+				return err
 			}
-			return err
 		}
 	}
 	err = f.Close()

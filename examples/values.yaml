@@ -1,4 +1,7 @@
-# Copyright Contributors to the Open Cluster Management project
+# Copyright Red Hat
 simple:
+  ServiceAccount: my-sa
+  Namespace: my-ns
+multicontent:
   ServiceAccount: my-sa
   Namespace: my-ns

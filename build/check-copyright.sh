@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright Contributors to the Open Cluster Management project
+# Copyright Red Hat
 
 # TESTED ON MAC!
 

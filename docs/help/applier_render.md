@@ -15,7 +15,7 @@ applier render [flags]
 ```
 
 # render templates
-applier render --values values.yaml --path template_path1 --path tempalte_path2...
+applier render --values values.yaml  [--path -] --path template_path1 --path tempalte_path2...
 
 ```
 

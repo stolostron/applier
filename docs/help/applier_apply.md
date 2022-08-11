@@ -6,19 +6,28 @@ apply templates located in paths
 
 apply templates located in paths with a values.yaml, the list of path can be a path to a file or a directory
 
+```
+applier apply [flags]
+```
+
 ### Examples
 
 ```
 
 # Apply templates
-applier apply [core-resources|custom-resources|deployments] --values values.yaml --path template_path1 --path tempalte_path2...
+applier apply --values values.yaml --path template_path1 --path tempalte_path2...
 
 ```
 
 ### Options
 
 ```
-  -h, --help   help for apply
+      --dry-run              If set the resources will not be applied
+  -h, --help                 help for apply
+      --output-file string   The generated resources will be copied in the specified file
+      --path stringArray     The list of template paths
+      --sort-on-kind         If set the files will be sorted by their kind (default true) (default true)
+      --values string        The files containing the values
 ```
 
 ### Options inherited from parent commands

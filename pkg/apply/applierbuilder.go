@@ -1,4 +1,4 @@
-// Copyright Contributors to the Open Cluster Management project
+// Copyright Red Hat
 package apply
 
 import (
@@ -72,6 +72,9 @@ func (a *ApplierBuilder) Build() Applier {
 	}
 	if a.applier.context == nil {
 		a.applier.context = context.Background()
+	}
+	if a.applier.kindOrder == nil {
+		a.applier.kindOrder = DefaultCreateUpdateKindsOrder
 	}
 	return a.applier
 }

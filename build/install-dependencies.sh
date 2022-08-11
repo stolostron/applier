@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-# Copyright Contributors to the Open Cluster Management project
+# Copyright Red Hat
 
 # Go tools
 _OS=$(go env GOOS)

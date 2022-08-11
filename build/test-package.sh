@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-# Copyright Contributors to the Open Cluster Management project
+# Copyright Red Hat
 
 # NOTE: This script should not be called directly. Please run `make test`.
 

@@ -1,10 +1,9 @@
-// Copyright Contributors to the Open Cluster Management project
+// Copyright Red Hat
 package apply
 
 import (
 	"fmt"
 
-	"github.com/stolostron/applier/pkg/cmd/apply/common"
 	"github.com/stolostron/applier/pkg/cmd/apply/core"
 	"github.com/stolostron/applier/pkg/cmd/apply/customresources"
 	"github.com/stolostron/applier/pkg/cmd/apply/deployments"
@@ -17,12 +16,12 @@ import (
 
 var example = `
 # Apply templates
-%[1]s apply [core-resources|custom-resources|deployments] --values values.yaml --path template_path1 --path tempalte_path2...
+%[1]s apply --values values.yaml --path template_path1 --path tempalte_path2...
 `
 
 // NewCmd ...
 func NewCmd(applierFlags *genericclioptionsapplier.ApplierFlags, streams genericclioptions.IOStreams) *cobra.Command {
-	o := common.NewOptions(applierFlags, streams)
+	o := NewOptions(applierFlags, streams)
 
 	cmd := &cobra.Command{
 		Use:          "apply",
@@ -31,9 +30,28 @@ func NewCmd(applierFlags *genericclioptionsapplier.ApplierFlags, streams generic
 		Example:      fmt.Sprintf(example, helpers.GetExampleHeader()),
 		SilenceUsage: true,
 		PersistentPreRun: func(c *cobra.Command, args []string) {
-			helpers.DryRunMessage(o.ApplierFlags.DryRun)
+			helpers.DryRunMessage(o.options.ApplierFlags.DryRun)
+		},
+		RunE: func(c *cobra.Command, args []string) error {
+			if err := o.Complete(c, args); err != nil {
+				return err
+			}
+			if err := o.Validate(); err != nil {
+				return err
+			}
+			if err := o.Run(); err != nil {
+				return err
+			}
+
+			return nil
 		},
 	}
+
+	cmd.Flags().BoolVar(&o.options.ApplierFlags.DryRun, "dry-run", false, "If set the resources will not be applied")
+	cmd.Flags().StringVar(&o.options.OutputFile, "output-file", "", "The generated resources will be copied in the specified file")
+	cmd.Flags().StringVar(&o.options.ValuesPath, "values", "", "The files containing the values")
+	cmd.Flags().StringArrayVar(&o.options.Paths, "path", []string{}, "The list of template paths")
+	cmd.Flags().BoolVar(&o.options.SortOnKind, "sort-on-kind", true, "If set the files will be sorted by their kind (default true)")
 
 	cmd.AddCommand(core.NewCmd(applierFlags, streams))
 	cmd.AddCommand(customresources.NewCmd(applierFlags, streams))
