@@ -1,9 +1,10 @@
-// Copyright Contributors to the Open Cluster Management project
+// Copyright Red Hat
 package common
 
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/ghodss/yaml"
 	"github.com/spf13/cobra"
@@ -14,15 +15,29 @@ import (
 
 func (o *Options) Complete(cmd *cobra.Command, args []string) (err error) {
 	// Convert yaml to map[string]interface
-	if len(o.ValuesPath) != 0 {
-		b, err := ioutil.ReadFile(o.ValuesPath)
+	b := []byte("")
+	switch {
+	case len(o.ValuesPath) == 0:
+		// check if pipe
+		fi, err := os.Stdin.Stat()
 		if err != nil {
 			return err
 		}
-		o.Values = make(map[string]interface{})
-		if err := yaml.Unmarshal(b, &o.Values); err != nil {
+		if fi.Mode()&os.ModeNamedPipe != 0 {
+			b, err = ioutil.ReadAll(os.Stdin)
+			if err != nil {
+				return err
+			}
+		}
+	case len(o.ValuesPath) != 0:
+		b, err = ioutil.ReadFile(o.ValuesPath)
+		if err != nil {
 			return err
 		}
+	}
+	o.Values = make(map[string]interface{})
+	if err := yaml.Unmarshal(b, &o.Values); err != nil {
+		return err
 	}
 	return nil
 }
@@ -68,8 +83,8 @@ func (o *Options) Run() error {
 	output := make([]string, 0)
 	switch o.ResourcesType {
 	case CoreResources:
-		if o.SortOnKind {
-			applyBuilder = applyBuilder.WithKindOrder(apply.DefaultCreateUpdateKindsOrder)
+		if !o.SortOnKind {
+			applyBuilder = applyBuilder.WithKindOrder(apply.NoCreateUpdateKindsOrder)
 		}
 		applier := applyBuilder.Build()
 		output, err = applier.ApplyDirectly(reader, o.Values, o.ApplierFlags.DryRun, o.Header, files...)

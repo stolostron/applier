@@ -1,15 +1,10 @@
-// Copyright Contributors to the Open Cluster Management project
+// Copyright Red Hat
 
 package asset
 
 import (
 	"embed"
-	"io/ioutil"
-	"os"
 	"path/filepath"
-	"strings"
-
-	"github.com/ghodss/yaml"
 )
 
 type ScenarioResourcesReader struct {
@@ -73,51 +68,4 @@ func (r *ScenarioResourcesReader) assetWalk(f string) ([]string, error) {
 		return assets, nil
 	}
 	return append(assets, f), nil
-}
-
-func isExcluded(f string, excluded []string) bool {
-	for _, e := range excluded {
-		if f == e {
-			return true
-		}
-	}
-	return false
-}
-
-func (r *ScenarioResourcesReader) ExtractAssets(prefix, dir string, excluded []string) error {
-	assetNames, err := r.AssetNames(excluded)
-	if err != nil {
-		return err
-	}
-	for _, assetName := range assetNames {
-		if !strings.HasPrefix(assetName, prefix) {
-			continue
-		}
-		relPath, err := filepath.Rel(prefix, assetName)
-		if err != nil {
-			return err
-		}
-		path := filepath.Join(dir, relPath)
-
-		if relPath == "." {
-			path = filepath.Join(dir, filepath.Base(assetName))
-		}
-		err = os.MkdirAll(filepath.Dir(path), os.FileMode(0700))
-		if err != nil {
-			return err
-		}
-		data, err := r.Asset(assetName)
-		if err != nil {
-			return err
-		}
-		err = ioutil.WriteFile(path, data, os.FileMode(0600))
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (r *ScenarioResourcesReader) ToJSON(b []byte) ([]byte, error) {
-	return yaml.YAMLToJSON(b)
 }

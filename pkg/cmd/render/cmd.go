@@ -1,4 +1,4 @@
-// Copyright Contributors to the Open Cluster Management project
+// Copyright Red Hat
 package render
 
 import (
@@ -13,7 +13,7 @@ import (
 
 var example = `
 # render templates
-%[1]s render --values values.yaml --path template_path1 --path tempalte_path2...
+%[1]s render --values values.yaml  [--path -] --path template_path1 --path tempalte_path2...
 `
 
 // NewCmd ...

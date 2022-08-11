@@ -1,5 +1,5 @@
 #!/bin/bash -e
-# Copyright Contributors to the Open Cluster Management project
+# Copyright Red Hat
 
 _script_dir=$(dirname "$0")
 mkdir -p test/unit/coverage

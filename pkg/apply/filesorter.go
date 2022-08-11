@@ -1,10 +1,9 @@
-// Copyright Contributors to the Open Cluster Management project
+// Copyright Red Hat
 package apply
 
 import (
 	"sort"
 
-	"github.com/ghodss/yaml"
 	"github.com/stolostron/applier/pkg/asset"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
@@ -50,25 +49,50 @@ var DefaultCreateUpdateKindsOrder KindsOrder = []string{
 	"APIService",
 }
 
-type fileInfo struct {
-	fileName  string
-	kind      string
-	name      string
-	namespace string
+var NoCreateUpdateKindsOrder KindsOrder = []string{}
+
+type FileInfo struct {
+	FileName   string
+	Kind       string
+	Name       string
+	Namespace  string
+	APIVersion string
 }
 
 func (a *Applier) Sort(reader asset.ScenarioReader,
 	values interface{},
 	headerFile string,
 	files ...string) ([]string, error) {
-	filesInfo := make([]fileInfo, 0)
+	// If no kind order
+	if len(a.kindOrder) == 0 {
+		return files, nil
+	}
+
+	filesInfo, err := a.GetFileInfo(reader, values, headerFile, files...)
+	if err != nil {
+		return nil, err
+	}
+	a.sortFiles(filesInfo)
+
+	files = make([]string, len(filesInfo))
+	for i, fileInfo := range filesInfo {
+		files[i] = fileInfo.FileName
+	}
+	return files, nil
+}
+
+func (a *Applier) GetFileInfo(reader asset.ScenarioReader,
+	values interface{},
+	headerFile string,
+	files ...string) ([]FileInfo, error) {
+	filesInfo := make([]FileInfo, 0)
 	for _, name := range files {
 		b, err := a.MustTemplateAsset(reader, values, headerFile, name)
 		if err != nil {
 			return nil, err
 		}
 		unstructuredObj := &unstructured.Unstructured{}
-		j, err := yaml.YAMLToJSON(b)
+		j, err := asset.ToJSON(b)
 		if err != nil {
 			return nil, err
 		}
@@ -78,44 +102,38 @@ func (a *Applier) Sort(reader asset.ScenarioReader,
 			return nil, err
 		}
 		filesInfo = append(filesInfo,
-			fileInfo{
-				fileName:  name,
-				kind:      unstructuredObj.GetKind(),
-				name:      unstructuredObj.GetName(),
-				namespace: unstructuredObj.GetNamespace(),
+			FileInfo{
+				FileName:   name,
+				Kind:       unstructuredObj.GetKind(),
+				Name:       unstructuredObj.GetName(),
+				Namespace:  unstructuredObj.GetNamespace(),
+				APIVersion: unstructuredObj.GetAPIVersion(),
 			})
 	}
-
-	a.sortFiles(filesInfo)
-
-	files = make([]string, len(filesInfo))
-	for i, fileInfo := range filesInfo {
-		files[i] = fileInfo.fileName
-	}
-	return files, nil
+	return filesInfo, nil
 }
 
 //sortUnstructuredForApply sorts a list on unstructured
-func (a *Applier) sortFiles(filesInfo []fileInfo) {
+func (a *Applier) sortFiles(filesInfo []FileInfo) {
 	sort.Slice(filesInfo[:], func(i, j int) bool {
 		return a.less(filesInfo[i], filesInfo[j])
 	})
 }
 
-func (a *Applier) less(fileInfo1, fileInfo2 fileInfo) bool {
+func (a *Applier) less(fileInfo1, fileInfo2 FileInfo) bool {
 	if a.weight(fileInfo1) == a.weight(fileInfo2) {
-		if fileInfo1.namespace == fileInfo2.namespace {
-			return fileInfo1.name < fileInfo2.name
+		if fileInfo1.Namespace == fileInfo2.Namespace {
+			return fileInfo1.Name < fileInfo2.Name
 		}
-		return fileInfo1.namespace < fileInfo2.namespace
+		return fileInfo1.Namespace < fileInfo2.Namespace
 	}
 	return a.weight(fileInfo1) < a.weight(fileInfo2)
 }
 
-func (a *Applier) weight(fileInfo fileInfo) int {
+func (a *Applier) weight(fileInfo FileInfo) int {
 	defaultWeight := len(a.kindOrder)
 	for i, k := range a.kindOrder {
-		if k == fileInfo.kind {
+		if k == fileInfo.Kind {
 			return i
 		}
 	}

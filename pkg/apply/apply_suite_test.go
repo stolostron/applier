@@ -1,4 +1,4 @@
-// Copyright Contributors to the Open Cluster Management project
+// Copyright Red Hat
 
 package apply
 
@@ -243,5 +243,41 @@ var _ = Describe("setOwnerRef", func() {
 			Expect(*dep.OwnerReferences[0].Controller).To(BeTrue())
 			Expect(*dep.OwnerReferences[0].BlockOwnerDeletion).To(BeTrue())
 		})
+	})
+})
+
+var _ = Describe("apply resources", func() {
+	It("Create resources", func() {
+		reader := scenario.GetScenarioResourcesReader()
+		applierBuilder := NewApplierBuilder()
+		applier := applierBuilder.
+			WithClient(kubeClient, apiExtensionsClient, dynamicClient).
+			Build()
+		files := []string{"multicontent/clusterrole.yaml",
+			"multicontent/clusterrolebinding.yaml",
+			"multicontent/file1.yaml",
+			"multicontent/sample.yaml",
+		}
+		values := struct {
+			Multicontent map[string]string
+		}{
+			Multicontent: map[string]string{
+				"ServiceAccount": "compute-operator",
+				"Namespace":      "compute-config",
+			},
+		}
+		results, err := applier.Apply(reader, values, false, "", files...)
+		Expect(err).To(BeNil())
+		Expect(len(results)).To(Equal(5))
+		_, err = kubeClient.RbacV1().ClusterRoles().Get(context.TODO(), "cluster-role", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+		_, err = kubeClient.RbacV1().ClusterRoleBindings().Get(context.TODO(), "clusterrole-binding", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+		_, err = kubeClient.CoreV1().Namespaces().Get(context.TODO(), "compute-config", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+		_, err = kubeClient.CoreV1().ServiceAccounts("compute-config").Get(context.TODO(), "compute-operator", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+		_, err = dynamicClient.Resource(GvrSCR).Get(context.TODO(), "my-sample", metav1.GetOptions{})
+		Expect(err).To(BeNil())
 	})
 })

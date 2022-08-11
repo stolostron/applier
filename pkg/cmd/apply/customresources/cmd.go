@@ -1,4 +1,4 @@
-// Copyright Contributors to the Open Cluster Management project
+// Copyright Red Hat
 package customresources
 
 import (
@@ -43,6 +43,7 @@ func NewCmd(applierFlags *genericclioptionsapplier.ApplierFlags, streams generic
 		},
 	}
 
+	cmd.Flags().BoolVar(&o.ApplierFlags.DryRun, "dry-run", false, "If set the resources will not be applied")
 	cmd.Flags().StringVar(&o.ValuesPath, "values", "", "The files containing the values")
 	cmd.Flags().StringArrayVar(&o.Paths, "path", []string{}, "The list of template paths")
 	cmd.Flags().StringVar(&o.OutputFile, "output-file", "", "The generated resources will be copied in the specified file")

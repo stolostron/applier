@@ -1,4 +1,4 @@
-[comment]: # ( Copyright Contributors to the Open Cluster Management project )
+[comment]: # ( Copyright Red Hat )
 
 # IMPORTANT
 
@@ -21,31 +21,8 @@ A Header file can be specified and if so will be included at the beginning of ea
 ## Template examples:
 
 - `applier render --values examples/values.yaml --paths examples/simple`
-- `pplier render --values examples/values.yaml --paths examples/header/templates --header examples/header/header.txt`
+- `applier render --values examples/values.yaml --paths examples/header/templates --header examples/header/header.txt`
 
-## command-line
-
-A command-line is available to apply yaml files in a given directory. 
-To generate it run either: 
-- `make install` to install from your local environment
-- `make oc-plugin` to install as a `oc` plugin
-- `make kubectl-plugin` to install as a `kubectl` plugin
-
-To get the usage, run:
-```
-[oc|kubectl] applier -h 
-```
-
-For example you can run:
-
-```bash
-applier apply core-resources --path ./examples/simple --values ./examples/values.yaml
-```
-or
-```bash
-applier render --path ./examples/simple --values ./examples/values.yaml | kubectl apply -f - 
-```
-the option `--sort-on-kind` will sort the files based on the kind. For example, namespace will be placed before serviceaccount.
 
 ## Packages
 ### Methods
@@ -58,21 +35,23 @@ applier := applierBuilder.
 	Build()
 ```
 
-There is other Withxxx functions you can call on the applierBuilder such as `WithTemplateFuncMap`, `WithOwner`, `WithCache`, `WithContext`.
+There is other WithXxxx functions you can call on the applierBuilder such as `WithTemplateFuncMap`, `WithOwner`, `WithCache`, `WithContext`, `WithKindOrder`...
 
 Once you have the applier you can call one of the following method.
-- [ApplyDirectly](pkg/apply/apply.go#L102) which takes kubernetes core resources from a reader such as namespace, secret... and apply them with the provided values.
-- [ApplyCustomResources](pkg/apply/apply.go#L133) which takes custom resources from a reader and apply them with the provided values.
-- [ApplyDeployments](pkg/apply/apply.go#L49) which teakes kubernetes Deployments from a reader and apply them with the provided values.
-- [MustTemplateResources](pkg/apply/apply.go#L249) which takes resources from a reader and render it with the provided values.
+- [Apply](pkg/apply/apply.go) which will call `ApplyDirectly`, `ApplyCustomResources` or `ApplyDeployments` depending on the kind of resources.
+- [ApplyDirectly](pkg/apply/apply.go) which takes kubernetes core resources from a reader such as namespace, secret... and apply them with the provided values.
+- [ApplyCustomResources](pkg/apply/apply.go) which takes custom resources from a reader and apply them with the provided values.
+- [ApplyDeployments](pkg/apply/apply.go) which teakes kubernetes Deployments from a reader and apply them with the provided values.
+- [MustTemplateResources](pkg/apply/apply.go) which takes resources from a reader and render it with the provided values.
 
 ### Readers
 
-Two readers are available:
+Three readers are available:
+- `asset.NewMemFSReader()` which allows you to read files from given directories
 - `asset.NewDirectoriesReader()` which allows you to read files from given directories
 - `asset.GetScenarioResourcesReader()` which allows you to read resources from your project. In order to use it you have to add such code in the directory you want to read:
 ```Go
-// Copyright Contributors to the Open Cluster Management project
+// Copyright Red Hat
 package scenario
 
 import (
@@ -93,3 +72,25 @@ and then call the GetScenarioResourcesReader() to get the reader.
 ### Example:
 
 Check the [command line apply code](pkg/cmd/apply/common/exec.go) to apply a list of files and this to just render [command line render code](/Users/dvernier/acm/applier/pkg/cmd/render/exec.go).
+
+## command-line
+
+A command-line is available to apply yaml files in a given directory. 
+To generate it run either: 
+- `make install` to install from your local environment
+- `make oc-plugin` to install as a `oc` plugin
+- `make kubectl-plugin` to install as a `kubectl` plugin
+
+To get the usage, run:
+```
+[oc|kubectl] applier -h 
+```
+
+For example you can run:
+
+```bash
+applier apply core-resources --path ./examples/simple --values ./examples/values.yaml
+applier render --path ./examples/simple --values ./examples/values.yaml | kubectl apply -f - 
+cat ./example/values.yaml | apply render --path ./examples/simple | kubectl apply -f -
+```
+By default, the option `--sort-on-kind` is set to true and so the files will be sorted based on the kind. For example, namespace will be placed before serviceaccount.

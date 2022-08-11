@@ -1,4 +1,4 @@
-[comment]: # ( Copyright Contributors to the Open Cluster Management project )
+[comment]: # ( Copyright Red Hat )
 
 # Security Response
 If you find a security issue that you want to address confidentially, contact the Red Hat product Security team. 

@@ -1,4 +1,4 @@
-// Copyright Contributors to the Open Cluster Management project
+// Copyright Red Hat
 package scenario
 
 import (
@@ -7,7 +7,7 @@ import (
 	"github.com/stolostron/applier/pkg/asset"
 )
 
-//go:embed musttemplateasset ownerref
+//go:embed musttemplateasset ownerref multicontent
 var files embed.FS
 
 func GetScenarioResourcesReader() *asset.ScenarioResourcesReader {
