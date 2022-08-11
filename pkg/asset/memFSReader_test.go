@@ -4,6 +4,7 @@ package asset
 
 import (
 	"reflect"
+	"sort"
 	"testing"
 )
 
@@ -12,7 +13,7 @@ func TestMemFS_AssetNames(t *testing.T) {
 		data map[string][]byte
 	}
 	type args struct {
-		excluded []string
+		files, excluded []string
 	}
 	tests := []struct {
 		name    string
@@ -30,6 +31,7 @@ func TestMemFS_AssetNames(t *testing.T) {
 				},
 			},
 			args: args{
+				files:    []string{"file1", "file2"},
 				excluded: []string{},
 			},
 			want:    []string{"file1", "file2"},
@@ -44,6 +46,7 @@ func TestMemFS_AssetNames(t *testing.T) {
 				},
 			},
 			args: args{
+				files:    []string{"file1", "file2"},
 				excluded: []string{"file2"},
 			},
 			want:    []string{"file1"},
@@ -55,11 +58,17 @@ func TestMemFS_AssetNames(t *testing.T) {
 			r := &MemFS{
 				data: tt.fields.data,
 			}
-			got, err := r.AssetNames(tt.args.excluded)
+			got, err := r.AssetNames(tt.args.files, tt.args.excluded)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MemFS.AssetNames() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			sort.Slice(got[:], func(i, j int) bool {
+				return (got[i] < got[j])
+			})
+			sort.Slice(tt.want[:], func(i, j int) bool {
+				return (tt.want[i] < tt.want[j])
+			})
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("MemFS.AssetNames() = %v, want %v", got, tt.want)
 			}

@@ -46,7 +46,7 @@ func SplitFiles(reader asset.ScenarioReader, paths []string) (*asset.MemFS, erro
 			continue
 		}
 		for k, s := range cleanedSplitted {
-			memFs.AddAsset(filepath.Join(filepath.Dir(p), fmt.Sprintf("part-%d-%s", k, filepath.Base(p))), []byte(s))
+			memFs.AddAsset(filepath.Join(filepath.Dir(p), fmt.Sprintf("%s.%d%s", filepath.Base(p), k, filepath.Ext(p))), []byte(s))
 		}
 	}
 	return memFs, nil

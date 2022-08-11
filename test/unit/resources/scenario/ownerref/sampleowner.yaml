@@ -3,6 +3,6 @@
 apiVersion: example.com/v1
 kind: SampleCustomResource
 metadata:
-  name: "my-sampleowner"
+  name: {{ .Name }}
 spec:
   data: "hello"

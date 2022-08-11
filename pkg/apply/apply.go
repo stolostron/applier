@@ -45,11 +45,9 @@ func (a *Applier) Apply(reader asset.ScenarioReader,
 	dryRun bool,
 	headerFile string,
 	files ...string) ([]string, error) {
-	memFSReader, err := helpers.SplitFiles(reader, files)
-	if err != nil {
-		return nil, err
-	}
-	files, err = memFSReader.AssetNames([]string{})
+	var err error
+	var memFSReader asset.ScenarioReader
+	memFSReader, files, err = getFiles(reader, files)
 	if err != nil {
 		return nil, err
 	}
@@ -168,6 +166,18 @@ func (a *Applier) ApplyDirectly(
 	if dryRun {
 		return a.MustTemplateAssets(reader, values, headerFile, files...)
 	}
+	var err error
+	var memFSReader asset.ScenarioReader
+	memFSReader, files, err = getFiles(reader, files)
+	if err != nil {
+		return nil, err
+	}
+	// Sort all the files depending on their kind type
+	files, err = a.Sort(memFSReader, values, headerFile, files...)
+	if err != nil {
+		return nil, err
+	}
+
 	recorder := events.NewInMemoryRecorder(helpers.GetExampleHeader())
 	output := make([]string, 0)
 	//Apply resources
@@ -175,14 +185,9 @@ func (a *Applier) ApplyDirectly(
 		WithAPIExtensionsClient(a.apiExtensionsClient).
 		WithDynamicClient(a.dynamicClient).
 		WithKubernetes(a.kubeClient)
-	var err error
-	files, err = a.Sort(reader, values, headerFile, files...)
-	if err != nil {
-		return nil, err
-	}
 	resourceResults := resourceapply.
 		ApplyDirectly(a.context, clients, recorder, a.cache, func(name string) ([]byte, error) {
-			out, err := a.MustTemplateAsset(reader, values, headerFile, name)
+			out, err := a.MustTemplateAsset(memFSReader, values, headerFile, name)
 			if err != nil {
 				return nil, err
 			}
@@ -196,6 +201,27 @@ func (a *Applier) ApplyDirectly(
 		}
 	}
 	return output, nil
+}
+
+func getFiles(reader asset.ScenarioReader, files []string) (asset.ScenarioReader, []string, error) {
+	// Get all assets in the files array. The files could be a file name or directory
+	files, err := reader.AssetNames(files, []string{})
+	if err != nil {
+		return nil, nil, err
+	}
+	// Files can contain multiple assets then we need to split all files
+	// and we stored them in memory
+	memFSReader, err := helpers.SplitFiles(reader, files)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Get all assets in the files array. The files could be a file name or directory
+	files, err = memFSReader.AssetNames(files, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	return memFSReader, files, nil
 }
 
 //ApplyCustomResources applies custom resources
@@ -319,16 +345,16 @@ func (a *Applier) MustTemplateAssets(reader asset.ScenarioReader,
 	values interface{},
 	headerFile string,
 	files ...string) ([]string, error) {
-	memFSReader, err := helpers.SplitFiles(reader, files)
+	var err error
+	var memFSReader asset.ScenarioReader
+	memFSReader, files, err = getFiles(reader, files)
 	if err != nil {
 		return nil, err
 	}
+
 	output := make([]string, 0)
-	files, err = memFSReader.AssetNames([]string{})
-	if err != nil {
-		return nil, err
-	}
 	if a.kindOrder != nil {
+		// Sort all the files depending on their kind type
 		files, err = a.Sort(memFSReader, values, headerFile, files...)
 		if err != nil {
 			return output, err
@@ -373,14 +399,11 @@ func (a *Applier) MustTemplateAsset(reader asset.ScenarioReader,
 		return nil, err
 	}
 	if hasMultipleAssets {
-		memFSReader, err := helpers.SplitFiles(reader, []string{name})
+		memFSReader, files, err := getFiles(reader, []string{name})
 		if err != nil {
 			return nil, err
 		}
-		files, err := memFSReader.AssetNames([]string{})
-		if err != nil {
-			return nil, err
-		}
+
 		rendered, err := a.MustTemplateAssets(memFSReader, values, headerFile, files...)
 		if err != nil {
 			return nil, err

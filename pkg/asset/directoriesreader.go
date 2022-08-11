@@ -7,8 +7,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-
-	"k8s.io/klog/v2"
 )
 
 //YamlFileReader defines a reader for yaml files
@@ -21,7 +19,6 @@ type YamlFileReader struct {
 var _ ScenarioReader = &YamlFileReader{
 	header: "",
 	paths:  []string{},
-	files:  []string{},
 }
 
 //NewDirectoriesReader constructs a new YamlFileReader
@@ -33,11 +30,6 @@ func NewDirectoriesReader(
 		header: header,
 		paths:  paths,
 	}
-	files, err := reader.AssetNames([]string{})
-	if err != nil {
-		klog.Fatal(err)
-	}
-	reader.files = files
 	return reader
 }
 
@@ -45,24 +37,21 @@ func NewDirectoriesReader(
 func (r *YamlFileReader) Asset(
 	name string,
 ) ([]byte, error) {
-	found := false
-	for _, p := range r.files {
-		if p == name {
-			found = true
-			break
-		}
+	files, err := r.AssetNames([]string{name}, nil)
+	if err != nil {
+		return nil, err
 	}
-	if !found {
+	if len(files) == 0 || len(files) > 1 {
 		return nil, fmt.Errorf("file %s is not part of the assets", name)
 	}
 	return ioutil.ReadFile(filepath.Clean(name))
 }
 
 //AssetNames returns the name of all assets
-func (r *YamlFileReader) AssetNames(excluded []string) ([]string, error) {
-	files := make([]string, 0)
+func (r *YamlFileReader) AssetNames(prefixes, excluded []string) ([]string, error) {
+	resultFiles := make([]string, 0)
 	if len(r.header) != 0 {
-		files = append(files, r.header)
+		resultFiles = append(resultFiles, r.header)
 	}
 	visit := func(path string, fileInfo os.FileInfo, err error) error {
 		if fileInfo == nil {
@@ -71,17 +60,17 @@ func (r *YamlFileReader) AssetNames(excluded []string) ([]string, error) {
 		if fileInfo.IsDir() {
 			return nil
 		}
-		if isExcluded(path, excluded) {
+		if isExcluded(path, prefixes, excluded) {
 			return nil
 		}
-		files = append(files, path)
+		resultFiles = append(resultFiles, path)
 		return nil
 	}
 
 	for _, p := range r.paths {
 		if err := filepath.Walk(p, visit); err != nil {
-			return files, err
+			return resultFiles, err
 		}
 	}
-	return files, nil
+	return resultFiles, nil
 }

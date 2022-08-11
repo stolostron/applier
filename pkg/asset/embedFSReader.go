@@ -25,14 +25,14 @@ func (r *ScenarioResourcesReader) Asset(name string) ([]byte, error) {
 	return r.files.ReadFile(name)
 }
 
-func (r *ScenarioResourcesReader) AssetNames(excluded []string) ([]string, error) {
+func (r *ScenarioResourcesReader) AssetNames(prefixes, excluded []string) ([]string, error) {
 	assetNames := make([]string, 0)
 	got, err := r.assetWalk(".")
 	if err != nil {
 		return nil, err
 	}
 	for _, f := range got {
-		if !isExcluded(f, excluded) {
+		if !isExcluded(f, prefixes, excluded) {
 			assetNames = append(assetNames, f)
 		}
 	}

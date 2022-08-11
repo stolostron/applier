@@ -45,7 +45,7 @@ func (o *Options) Complete(cmd *cobra.Command, args []string) (err error) {
 func (o *Options) Validate() error {
 	reader := asset.NewDirectoriesReader(o.Header, o.Paths)
 
-	assetNames, err := reader.AssetNames(nil)
+	assetNames, err := reader.AssetNames(o.Paths, nil)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func (o *Options) Run() error {
 	applyBuilder := apply.NewApplierBuilder().
 		WithClient(kubeClient, apiExtensionsClient, dynamicClient)
 	reader := asset.NewDirectoriesReader(o.Header, o.Paths)
-	files, err := reader.AssetNames([]string{o.Header})
+	files, err := reader.AssetNames(o.Paths, []string{o.Header})
 	if err != nil {
 		return err
 	}

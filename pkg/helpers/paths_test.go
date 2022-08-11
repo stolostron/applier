@@ -112,7 +112,7 @@ func TestSplitFiles(t *testing.T) {
 				if got == nil {
 					t.Error("memFS is nil")
 				}
-				names, err := got.AssetNames([]string{})
+				names, err := got.AssetNames(tt.args.paths, []string{})
 				if (err != nil) != tt.wantErr {
 					t.Errorf("HasMultipleAssets() error = %v, wantErr %v", err, tt.wantErr)
 				}
@@ -123,7 +123,7 @@ func TestSplitFiles(t *testing.T) {
 				if got == nil {
 					t.Error("memFS is nil")
 				}
-				names, err := got.AssetNames([]string{})
+				names, err := got.AssetNames(tt.args.paths, []string{})
 				if (err != nil) != tt.wantErr {
 					t.Errorf("HasMultipleAssets() error = %v, wantErr %v", err, tt.wantErr)
 				}

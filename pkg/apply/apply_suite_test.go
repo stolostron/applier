@@ -94,11 +94,18 @@ var _ = Describe("setOwnerRef", func() {
 				WithTemplateFuncMap(FuncMap()).WithOwner(nsOwner, false, false, scheme.Scheme).
 				Build()
 
-			_, err := applier.ApplyDirectly(reader, nil, false, "", "ownerref/ns.yaml")
+			values := struct {
+				Name      string
+				Namespace string
+			}{
+				Name:      "my-deployment-owner",
+				Namespace: "my-ownerns",
+			}
+			_, err := applier.ApplyDirectly(reader, values, false, "", "ownerref/ns.yaml")
 			Expect(err).To(BeNil())
 		})
 		By("Checking Ownerref", func() {
-			ns, err := kubeClient.CoreV1().Namespaces().Get(context.TODO(), "my-ns", metav1.GetOptions{})
+			ns, err := kubeClient.CoreV1().Namespaces().Get(context.TODO(), "my-ownerns", metav1.GetOptions{})
 			Expect(err).To(BeNil())
 			Expect(len(ns.GetOwnerReferences())).To(Equal(1))
 			Expect(ns.OwnerReferences[0].APIVersion).To(Equal(nsOwner.APIVersion))
@@ -133,11 +140,18 @@ var _ = Describe("setOwnerRef", func() {
 				WithTemplateFuncMap(FuncMap()).WithOwner(sampleOwner, false, false, scheme.Scheme).
 				Build()
 
-			_, err := applier.ApplyCustomResources(reader, nil, false, "", "ownerref/sampleowner.yaml")
+			values := struct {
+				Name      string
+				Namespace string
+			}{
+				Name:      "my-owner",
+				Namespace: "my-ownerns",
+			}
+			_, err := applier.ApplyCustomResources(reader, values, false, "", "ownerref/sampleowner.yaml")
 			Expect(err).To(BeNil())
 		})
 		By("Checking Ownerref", func() {
-			sample, err := dynamicClient.Resource(GvrSCR).Get(context.TODO(), "my-sampleowner", metav1.GetOptions{})
+			sample, err := dynamicClient.Resource(GvrSCR).Get(context.TODO(), "my-owner", metav1.GetOptions{})
 			Expect(err).To(BeNil())
 			Expect(len(sample.GetOwnerReferences())).To(Equal(1))
 			Expect(sample.GetOwnerReferences()[0].APIVersion).To(Equal(sampleOwner.GetAPIVersion()))
@@ -159,13 +173,15 @@ var _ = Describe("setOwnerRef", func() {
 				Build()
 
 			values := struct {
-				Name string
+				Name      string
+				Namespace string
 			}{
-				Name: "my-deployment-owner",
+				Name:      "my-deployment-owner",
+				Namespace: "my-ownerns",
 			}
 			_, err := applier.ApplyCustomResources(reader, values, false, "", "ownerref/deployment.yaml")
 			Expect(err).To(BeNil())
-			deployment, err = kubeClient.AppsV1().Deployments("my-ns").Get(context.TODO(), "my-deployment-owner", metav1.GetOptions{})
+			deployment, err = kubeClient.AppsV1().Deployments("my-ownerns").Get(context.TODO(), "my-deployment-owner", metav1.GetOptions{})
 			Expect(err).To(BeNil())
 		})
 		By("setReferenceOwner", func() {
@@ -177,15 +193,17 @@ var _ = Describe("setOwnerRef", func() {
 				Build()
 
 			values := struct {
-				Name string
+				Name      string
+				Namespace string
 			}{
-				Name: "my-deployment",
+				Name:      "my-deployment",
+				Namespace: "my-ownerns",
 			}
 			_, err := applier.ApplyCustomResources(reader, values, false, "", "ownerref/deployment.yaml")
 			Expect(err).To(BeNil())
 		})
 		By("Checking Ownerref", func() {
-			dep, err := kubeClient.AppsV1().Deployments("my-ns").Get(context.TODO(), "my-deployment", metav1.GetOptions{})
+			dep, err := kubeClient.AppsV1().Deployments("my-ownerns").Get(context.TODO(), "my-deployment", metav1.GetOptions{})
 			Expect(err).To(BeNil())
 			Expect(len(dep.GetOwnerReferences())).To(Equal(1))
 			Expect(dep.OwnerReferences[0].APIVersion).To(Equal(deployment.APIVersion))
@@ -207,13 +225,15 @@ var _ = Describe("setOwnerRef", func() {
 				Build()
 
 			values := struct {
-				Name string
+				Name      string
+				Namespace string
 			}{
-				Name: "my-deployment-owner-controller",
+				Name:      "my-deployment-owner-controller",
+				Namespace: "my-ownerns",
 			}
 			_, err := applier.ApplyCustomResources(reader, values, false, "", "ownerref/deployment.yaml")
 			Expect(err).To(BeNil())
-			deployment, err = kubeClient.AppsV1().Deployments("my-ns").Get(context.TODO(), "my-deployment-owner-controller", metav1.GetOptions{})
+			deployment, err = kubeClient.AppsV1().Deployments("my-ownerns").Get(context.TODO(), "my-deployment-owner-controller", metav1.GetOptions{})
 			Expect(err).To(BeNil())
 		})
 		By("setReferenceOwner", func() {
@@ -225,15 +245,17 @@ var _ = Describe("setOwnerRef", func() {
 				Build()
 
 			values := struct {
-				Name string
+				Name      string
+				Namespace string
 			}{
-				Name: "my-deployment-controller",
+				Name:      "my-deployment-controller",
+				Namespace: "my-ownerns",
 			}
 			_, err := applier.ApplyCustomResources(reader, values, false, "", "ownerref/deployment.yaml")
 			Expect(err).To(BeNil())
 		})
 		By("Checking Ownerref", func() {
-			dep, err := kubeClient.AppsV1().Deployments("my-ns").Get(context.TODO(), "my-deployment-controller", metav1.GetOptions{})
+			dep, err := kubeClient.AppsV1().Deployments("my-ownerns").Get(context.TODO(), "my-deployment-controller", metav1.GetOptions{})
 			Expect(err).To(BeNil())
 			Expect(len(dep.GetOwnerReferences())).To(Equal(1))
 			Expect(dep.OwnerReferences[0].APIVersion).To(Equal(deployment.APIVersion))
@@ -246,7 +268,7 @@ var _ = Describe("setOwnerRef", func() {
 	})
 })
 
-var _ = Describe("apply resources", func() {
+var _ = Describe("apply resources files", func() {
 	It("Create resources", func() {
 		reader := scenario.GetScenarioResourcesReader()
 		applierBuilder := NewApplierBuilder()
@@ -278,6 +300,123 @@ var _ = Describe("apply resources", func() {
 		_, err = kubeClient.CoreV1().ServiceAccounts("compute-config").Get(context.TODO(), "compute-operator", metav1.GetOptions{})
 		Expect(err).To(BeNil())
 		_, err = dynamicClient.Resource(GvrSCR).Get(context.TODO(), "my-sample", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+	})
+})
+
+var _ = Describe("apply resources directory", func() {
+	It("Create resources", func() {
+		reader := scenario.GetScenarioResourcesReader()
+		applierBuilder := NewApplierBuilder()
+		applier := applierBuilder.
+			WithClient(kubeClient, apiExtensionsClient, dynamicClient).
+			Build()
+		files := []string{
+			"multicontent",
+			"ownerref",
+		}
+		values := struct {
+			Name         string
+			Namespace    string
+			Multicontent map[string]string
+		}{
+			Name:      "my-owner",
+			Namespace: "my-ownerns-dir",
+			Multicontent: map[string]string{
+				"ServiceAccount": "compute-operator",
+				"Namespace":      "compute-config-dir",
+			},
+		}
+		results, err := applier.Apply(reader, values, false, "", files...)
+		Expect(err).To(BeNil())
+		Expect(len(results)).To(Equal(8))
+		_, err = kubeClient.RbacV1().ClusterRoles().Get(context.TODO(), "cluster-role", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+		_, err = kubeClient.RbacV1().ClusterRoleBindings().Get(context.TODO(), "clusterrole-binding", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+		_, err = kubeClient.CoreV1().Namespaces().Get(context.TODO(), "compute-config-dir", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+		_, err = kubeClient.CoreV1().ServiceAccounts("compute-config-dir").Get(context.TODO(), "compute-operator", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+		_, err = dynamicClient.Resource(GvrSCR).Get(context.TODO(), "my-sample", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+		_, err = dynamicClient.Resource(GvrSCR).Get(context.TODO(), "my-owner", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+		_, err = kubeClient.CoreV1().Namespaces().Get(context.TODO(), "my-ownerns-dir", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+		_, err = kubeClient.AppsV1().Deployments("my-ownerns-dir").Get(context.TODO(), "my-owner", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+	})
+})
+
+var _ = Describe("apply resources files and directory", func() {
+	It("Create resources", func() {
+		reader := scenario.GetScenarioResourcesReader()
+		applierBuilder := NewApplierBuilder()
+		applier := applierBuilder.
+			WithClient(kubeClient, apiExtensionsClient, dynamicClient).
+			Build()
+		files := []string{
+			"multicontent",
+			"ownerref/ns.yaml",
+		}
+		values := struct {
+			Name         string
+			Namespace    string
+			Multicontent map[string]string
+		}{
+			Name:      "my-owner",
+			Namespace: "my-ownerns-mix",
+			Multicontent: map[string]string{
+				"ServiceAccount": "compute-operator",
+				"Namespace":      "compute-config-mix",
+			},
+		}
+		results, err := applier.Apply(reader, values, false, "", files...)
+		Expect(err).To(BeNil())
+		Expect(len(results)).To(Equal(6))
+		_, err = kubeClient.RbacV1().ClusterRoles().Get(context.TODO(), "cluster-role", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+		_, err = kubeClient.RbacV1().ClusterRoleBindings().Get(context.TODO(), "clusterrole-binding", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+		_, err = kubeClient.CoreV1().Namespaces().Get(context.TODO(), "compute-config-mix", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+		_, err = kubeClient.CoreV1().ServiceAccounts("compute-config-mix").Get(context.TODO(), "compute-operator", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+		_, err = kubeClient.CoreV1().Namespaces().Get(context.TODO(), "my-ownerns-mix", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+	})
+})
+
+var _ = Describe("applydirectly resources files", func() {
+	It("Create resources", func() {
+		reader := scenario.GetScenarioResourcesReader()
+		applierBuilder := NewApplierBuilder()
+		applier := applierBuilder.
+			WithClient(kubeClient, apiExtensionsClient, dynamicClient).
+			Build()
+		files := []string{"multicontent/clusterrole.yaml",
+			"multicontent/clusterrolebinding.yaml",
+			"multicontent/file1.yaml",
+		}
+		values := struct {
+			Multicontent map[string]string
+		}{
+			Multicontent: map[string]string{
+				"ServiceAccount": "compute-operator",
+				"Namespace":      "compute-config",
+			},
+		}
+		results, err := applier.ApplyDirectly(reader, values, false, "", files...)
+		Expect(err).To(BeNil())
+		Expect(len(results)).To(Equal(4))
+		_, err = kubeClient.RbacV1().ClusterRoles().Get(context.TODO(), "cluster-role", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+		_, err = kubeClient.RbacV1().ClusterRoleBindings().Get(context.TODO(), "clusterrole-binding", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+		_, err = kubeClient.CoreV1().Namespaces().Get(context.TODO(), "compute-config", metav1.GetOptions{})
+		Expect(err).To(BeNil())
+		_, err = kubeClient.CoreV1().ServiceAccounts("compute-config").Get(context.TODO(), "compute-operator", metav1.GetOptions{})
 		Expect(err).To(BeNil())
 	})
 })
