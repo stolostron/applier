@@ -1,5 +1,4 @@
 // Copyright Red Hat
-
 package asset
 
 import (
@@ -22,14 +21,11 @@ func ToJSON(b []byte) ([]byte, error) {
 }
 
 func ExtractAssets(r ScenarioReader, prefix, dir string, excluded []string) error {
-	assetNames, err := r.AssetNames(excluded)
+	assetNames, err := r.AssetNames([]string{prefix}, excluded)
 	if err != nil {
 		return err
 	}
 	for _, assetName := range assetNames {
-		if !strings.HasPrefix(assetName, prefix) {
-			continue
-		}
 		relPath, err := filepath.Rel(prefix, assetName)
 		if err != nil {
 			return err
@@ -55,11 +51,20 @@ func ExtractAssets(r ScenarioReader, prefix, dir string, excluded []string) erro
 	return nil
 }
 
-func isExcluded(f string, excluded []string) bool {
+func isExcluded(f string, files, excluded []string) bool {
 	isExcluded := false
 	for _, e := range excluded {
 		if f == e {
 			isExcluded = true
+		}
+	}
+	if isExcluded {
+		return true
+	}
+	isExcluded = true
+	for _, d := range files {
+		if strings.HasPrefix(f, d) {
+			isExcluded = false
 		}
 	}
 	return isExcluded

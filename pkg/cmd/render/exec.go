@@ -49,7 +49,7 @@ func (o *Options) Complete(cmd *cobra.Command, args []string) (err error) {
 func (o *Options) Validate() error {
 	reader := asset.NewDirectoriesReader(o.Header, o.Paths)
 
-	assetNames, err := reader.AssetNames([]string{o.Header})
+	assetNames, err := reader.AssetNames(o.Paths, []string{o.Header})
 	if err != nil {
 		return err
 	}
@@ -68,7 +68,7 @@ func (o *Options) Run() error {
 
 	reader := asset.NewDirectoriesReader(o.Header, o.Paths)
 	// Get files names
-	files, err := reader.AssetNames([]string{o.Header})
+	files, err := reader.AssetNames(o.Paths, []string{o.Header})
 	if err != nil {
 		return err
 	}

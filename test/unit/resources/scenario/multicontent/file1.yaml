@@ -1,17 +1,17 @@
 # Copyright Red Hat
 
 apiVersion: v1
-kind: Namespace
-metadata:
-  name: "{{ .Multicontent.Namespace }}"
----
-# Copyright Red Hat
-
-apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: "{{ .Multicontent.ServiceAccount }}"
   namespace: "{{ .Multicontent.Namespace }}"
 secrets:
 - name: mysecret
+---
+# Copyright Red Hat
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "{{ .Multicontent.Namespace }}"
 ---

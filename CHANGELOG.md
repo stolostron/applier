@@ -11,6 +11,7 @@
 - Refactor the reader interface, Only 2 methods must be implemented `Asset` and `AssetNames`
 - Add `Apply` methods which runs `ApplyDirectly`, `ApplyCustomResources` and `ApplyDeployments`.
 - Add command `applier apply ...` which call the `Apply` method.
+- The `files` parameter in `Apply`, `ApplyDirectly`, `ApplyDeployments` and `ApplyCustomResources` can be an array of directory or file rather then only files.
 
 ## Breaking changes
 

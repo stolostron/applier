@@ -17,7 +17,7 @@ func NewMemFSReader() *MemFS {
 }
 
 func (r *MemFS) AddAssetsFromScenarioReader(reader ScenarioReader) error {
-	assets, err := reader.AssetNames([]string{})
+	assets, err := reader.AssetNames(nil, nil)
 	if err != nil {
 		return err
 	}
@@ -39,11 +39,11 @@ func (r *MemFS) Asset(name string) ([]byte, error) {
 	return r.data[name], nil
 }
 
-func (r *MemFS) AssetNames(excluded []string) ([]string, error) {
+func (r *MemFS) AssetNames(prefixes, excluded []string) ([]string, error) {
 	assetNames := make([]string, 0)
 
 	for f := range r.data {
-		if !isExcluded(f, excluded) {
+		if !isExcluded(f, prefixes, excluded) {
 			assetNames = append(assetNames, f)
 		}
 	}

@@ -4,7 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Name }}
-  namespace: "my-ns"
+  namespace: {{ .Namespace }}
   labels:
     control-plane: my-deployment
 spec:
