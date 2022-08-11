@@ -76,7 +76,8 @@ func (o *Options) Run() error {
 	applyBuilder := apply.NewApplierBuilder().
 		WithClient(kubeClient, apiExtensionsClient, dynamicClient)
 	reader := asset.NewDirectoriesReader(o.Header, o.Paths)
-	files, err := reader.AssetNames(o.Paths, []string{o.Header})
+	o.Excluded = append(o.Excluded, o.Header)
+	files, err := reader.AssetNames(o.Paths, o.Excluded)
 	if err != nil {
 		return err
 	}

@@ -22,13 +22,14 @@ applier apply deployments --values values.yaml --path template_path1 --path temp
 ### Options
 
 ```
-      --dry-run              If set the generated resources will be displayed but not applied
-      --header string        The files which will be added to each template
-  -h, --help                 help for deployments
-      --output-file string   The generated resources will be copied in the specified file
-      --path stringArray     The list of template paths
-      --timeout int          extend timeout from 300 secounds  (default 300)
-      --values string        The files containing the values
+      --dry-run                If set the generated resources will be displayed but not applied
+      --excluded stringArray   The list of paths to exclude
+      --header string          The files which will be added to each template
+  -h, --help                   help for deployments
+      --output-file string     The generated resources will be copied in the specified file
+      --path stringArray       The list of template paths
+      --timeout int            extend timeout from 300 secounds  (default 300)
+      --values string          The files containing the values
 ```
 
 ### Options inherited from parent commands
