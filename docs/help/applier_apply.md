@@ -22,12 +22,13 @@ applier apply --values values.yaml --path template_path1 --path tempalte_path2..
 ### Options
 
 ```
-      --dry-run              If set the resources will not be applied
-  -h, --help                 help for apply
-      --output-file string   The generated resources will be copied in the specified file
-      --path stringArray     The list of template paths
-      --sort-on-kind         If set the files will be sorted by their kind (default true) (default true)
-      --values string        The files containing the values
+      --dry-run                If set the resources will not be applied
+      --excluded stringArray   The list of paths to exclude
+  -h, --help                   help for apply
+      --output-file string     The generated resources will be copied in the specified file
+      --path stringArray       The list of template paths
+      --sort-on-kind           If set the files will be sorted by their kind (default true) (default true)
+      --values string          The files containing the values
 ```
 
 ### Options inherited from parent commands

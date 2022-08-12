@@ -68,7 +68,8 @@ func (o *Options) Run() error {
 
 	reader := asset.NewDirectoriesReader(o.Header, o.Paths)
 	// Get files names
-	files, err := reader.AssetNames(o.Paths, []string{o.Header})
+	o.Excluded = append(o.Excluded, o.Header)
+	files, err := reader.AssetNames(o.Paths, o.Excluded)
 	if err != nil {
 		return err
 	}
