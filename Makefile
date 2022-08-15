@@ -31,8 +31,7 @@ deps:
 
 .PHONY: build
 build: 
-	rm -f ${GOPATH}/bin/applier
-	go install .
+	go build -o ./bin/applier .
 
 .PHONY: build-bin
 build-bin: doc-help
@@ -83,10 +82,12 @@ doc-help:
 	@build/clean-docs.sh
 
 .PHONY: install
-install: build
+install: 
+	rm -f ${GOPATH}/bin/applier
+	go install .
 
 .PHONY: plugin
-plugin: build
+plugin: install
 	cp ${GOPATH}/bin/applier ${GOPATH}/bin/oc-applier
 	cp ${GOPATH}/bin/applier ${GOPATH}/bin/kubectl-applier
 

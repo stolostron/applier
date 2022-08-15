@@ -47,7 +47,7 @@ func (a *Applier) Apply(reader asset.ScenarioReader,
 	files ...string) ([]string, error) {
 	var err error
 	var memFSReader asset.ScenarioReader
-	memFSReader, files, err = getFiles(reader, files)
+	memFSReader, files, err = getFiles(reader, files, headerFile)
 	if err != nil {
 		return nil, err
 	}
@@ -111,8 +111,13 @@ func (a *Applier) ApplyDeployments(
 	headerFile string,
 	files ...string) ([]string, error) {
 	output := make([]string, 0)
+	// Remove header files from the files as it should not be processed.
+	files = asset.Delete(files, headerFile)
 	//Render each file
 	for _, name := range files {
+		if name == headerFile {
+			continue
+		}
 		deployment, err := a.ApplyDeployment(reader, values, dryRun, headerFile, name)
 		if err != nil {
 			if helpers.IsEmptyAsset(err) {
@@ -168,7 +173,7 @@ func (a *Applier) ApplyDirectly(
 	}
 	var err error
 	var memFSReader asset.ScenarioReader
-	memFSReader, files, err = getFiles(reader, files)
+	memFSReader, files, err = getFiles(reader, files, headerFile)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +182,6 @@ func (a *Applier) ApplyDirectly(
 	if err != nil {
 		return nil, err
 	}
-
 	recorder := events.NewInMemoryRecorder(helpers.GetExampleHeader())
 	output := make([]string, 0)
 	//Apply resources
@@ -185,6 +189,8 @@ func (a *Applier) ApplyDirectly(
 		WithAPIExtensionsClient(a.apiExtensionsClient).
 		WithDynamicClient(a.dynamicClient).
 		WithKubernetes(a.kubeClient)
+	// Remove header files from the files as it should not be processed.
+	files = asset.Delete(files, headerFile)
 	resourceResults := resourceapply.
 		ApplyDirectly(a.context, clients, recorder, a.cache, func(name string) ([]byte, error) {
 			out, err := a.MustTemplateAsset(memFSReader, values, headerFile, name)
@@ -203,9 +209,9 @@ func (a *Applier) ApplyDirectly(
 	return output, nil
 }
 
-func getFiles(reader asset.ScenarioReader, files []string) (asset.ScenarioReader, []string, error) {
+func getFiles(reader asset.ScenarioReader, files []string, headerFile string) (asset.ScenarioReader, []string, error) {
 	// Get all assets in the files array. The files could be a file name or directory
-	files, err := reader.AssetNames(files, []string{})
+	files, err := reader.AssetNames(files, []string{}, headerFile)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -217,7 +223,7 @@ func getFiles(reader asset.ScenarioReader, files []string) (asset.ScenarioReader
 	}
 
 	// Get all assets in the files array. The files could be a file name or directory
-	files, err = memFSReader.AssetNames(files, nil)
+	files, err = memFSReader.AssetNames(files, nil, headerFile)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -232,7 +238,12 @@ func (a *Applier) ApplyCustomResources(
 	headerFile string,
 	files ...string) ([]string, error) {
 	output := make([]string, 0)
+	// Remove header files from the files as it should not be processed.
+	files = asset.Delete(files, headerFile)
 	for _, name := range files {
+		if name == headerFile {
+			continue
+		}
 		asset, err := a.ApplyCustomResource(reader, values, dryRun, headerFile, name)
 		if err != nil {
 			if helpers.IsEmptyAsset(err) {
@@ -347,7 +358,7 @@ func (a *Applier) MustTemplateAssets(reader asset.ScenarioReader,
 	files ...string) ([]string, error) {
 	var err error
 	var memFSReader asset.ScenarioReader
-	memFSReader, files, err = getFiles(reader, files)
+	memFSReader, files, err = getFiles(reader, files, headerFile)
 	if err != nil {
 		return nil, err
 	}
@@ -360,6 +371,8 @@ func (a *Applier) MustTemplateAssets(reader asset.ScenarioReader,
 			return output, err
 		}
 	}
+	// Remove header files from the files as it should not be processed.
+	files = asset.Delete(files, headerFile)
 	for _, name := range files {
 		if name == headerFile {
 			continue
@@ -399,7 +412,7 @@ func (a *Applier) MustTemplateAsset(reader asset.ScenarioReader,
 		return nil, err
 	}
 	if hasMultipleAssets {
-		memFSReader, files, err := getFiles(reader, []string{name})
+		memFSReader, files, err := getFiles(reader, []string{name}, headerFile)
 		if err != nil {
 			return nil, err
 		}

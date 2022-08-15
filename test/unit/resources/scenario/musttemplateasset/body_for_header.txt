@@ -1,2 +1,6 @@
-{{ .myvalue }}
-{{ include "myfunc" .  }}
+apiVersion: example.com/v1
+kind: SampleCustomResource
+metadata:
+  name: "my-sample"
+spec:
+  data: {{ include "myfunc" .  }}

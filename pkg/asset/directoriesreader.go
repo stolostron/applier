@@ -19,40 +19,47 @@ type YamlFileReader struct {
 var _ ScenarioReader = &YamlFileReader{
 	header: "",
 	paths:  []string{},
+	files:  []string{},
 }
 
 //NewDirectoriesReader constructs a new YamlFileReader
 func NewDirectoriesReader(
 	header string,
 	paths []string,
-) *YamlFileReader {
+) (*YamlFileReader, error) {
 	reader := &YamlFileReader{
 		header: header,
 		paths:  paths,
 	}
-	return reader
+	files, err := reader.AssetNames(paths, nil, header)
+	if err != nil {
+		return nil, err
+	}
+	reader.files = files
+
+	return reader, nil
 }
 
 //Asset returns an asset
 func (r *YamlFileReader) Asset(
 	name string,
 ) ([]byte, error) {
-	files, err := r.AssetNames([]string{name}, nil)
-	if err != nil {
-		return nil, err
+	found := false
+	for _, p := range r.files {
+		if p == name {
+			found = true
+			break
+		}
 	}
-	if len(files) == 0 || len(files) > 1 {
+	if !found {
 		return nil, fmt.Errorf("file %s is not part of the assets", name)
 	}
 	return ioutil.ReadFile(filepath.Clean(name))
 }
 
 //AssetNames returns the name of all assets
-func (r *YamlFileReader) AssetNames(prefixes, excluded []string) ([]string, error) {
-	resultFiles := make([]string, 0)
-	if len(r.header) != 0 {
-		resultFiles = append(resultFiles, r.header)
-	}
+func (r *YamlFileReader) AssetNames(prefixes, excluded []string, headerFile string) ([]string, error) {
+	assetNames := make([]string, 0)
 	visit := func(path string, fileInfo os.FileInfo, err error) error {
 		if fileInfo == nil {
 			return fmt.Errorf("paths %s doesn't exist", path)
@@ -63,14 +70,17 @@ func (r *YamlFileReader) AssetNames(prefixes, excluded []string) ([]string, erro
 		if isExcluded(path, prefixes, excluded) {
 			return nil
 		}
-		resultFiles = append(resultFiles, path)
+		assetNames = append(assetNames, path)
 		return nil
 	}
 
 	for _, p := range r.paths {
 		if err := filepath.Walk(p, visit); err != nil {
-			return resultFiles, err
+			return assetNames, err
 		}
 	}
-	return resultFiles, nil
+	// The header file must be added in the assetNames as it is retrieved latter
+	// to render asset in the MustTemplateAsset
+	assetNames = AppendItNotExists(assetNames, headerFile)
+	return assetNames, nil
 }

@@ -1,0 +1,7 @@
+# Copyright Red Hat
+Simple:
+  ServiceAccount: my-sa
+  Namespace: my-ns
+Multicontent:
+  ServiceAccount: my-sa
+  Namespace: my-ns

@@ -14,6 +14,7 @@ func TestMemFS_AssetNames(t *testing.T) {
 	}
 	type args struct {
 		files, excluded []string
+		headerFile      string
 	}
 	tests := []struct {
 		name    string
@@ -58,7 +59,7 @@ func TestMemFS_AssetNames(t *testing.T) {
 			r := &MemFS{
 				data: tt.fields.data,
 			}
-			got, err := r.AssetNames(tt.args.files, tt.args.excluded)
+			got, err := r.AssetNames(tt.args.files, tt.args.excluded, tt.args.headerFile)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MemFS.AssetNames() error = %v, wantErr %v", err, tt.wantErr)
 				return

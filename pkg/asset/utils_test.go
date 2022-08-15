@@ -14,9 +14,10 @@ func TestMemFS_ExtractAssets(t *testing.T) {
 		data map[string][]byte
 	}
 	type args struct {
-		prefix   string
-		dir      string
-		excluded []string
+		prefix     string
+		dir        string
+		excluded   []string
+		headerFile string
 	}
 	dir, err := os.MkdirTemp("", "test")
 	if err != nil {
@@ -49,7 +50,7 @@ func TestMemFS_ExtractAssets(t *testing.T) {
 			r := &MemFS{
 				data: tt.fields.data,
 			}
-			if err := ExtractAssets(r, tt.args.prefix, tt.args.dir, tt.args.excluded); (err != nil) != tt.wantErr {
+			if err := ExtractAssets(r, tt.args.prefix, tt.args.dir, tt.args.excluded, tt.args.headerFile); (err != nil) != tt.wantErr {
 				t.Errorf("MemFS.ExtractAssets() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			b, err := ioutil.ReadFile(filepath.Join(dir, "file2"))

@@ -12,16 +12,16 @@ import (
 )
 
 func ToJSON(b []byte) ([]byte, error) {
-	b, err := yaml.YAMLToJSON(b)
+	j, err := yaml.YAMLToJSON(b)
 	if err != nil {
 		klog.Errorf("err:%s\nyaml:\n%s", err, string(b))
 		return nil, err
 	}
-	return b, nil
+	return j, nil
 }
 
-func ExtractAssets(r ScenarioReader, prefix, dir string, excluded []string) error {
-	assetNames, err := r.AssetNames([]string{prefix}, excluded)
+func ExtractAssets(r ScenarioReader, prefix, dir string, excluded []string, headerFile string) error {
+	assetNames, err := r.AssetNames([]string{prefix}, excluded, headerFile)
 	if err != nil {
 		return err
 	}
@@ -68,4 +68,34 @@ func isExcluded(f string, files, excluded []string) bool {
 		}
 	}
 	return isExcluded
+}
+
+func AppendItNotExists(a []string, e string) []string {
+	if len(e) == 0 {
+		return a
+	}
+	exists := false
+	for _, v := range a {
+		if v == e {
+			exists = true
+		}
+	}
+	if !exists {
+		a = append(a, e)
+	}
+	return a
+}
+
+func Delete(a []string, e string) []string {
+	p := -1
+	for i, v := range a {
+		if v == e {
+			p = i
+		}
+	}
+	if p != -1 {
+		a[p] = a[len(a)-1]
+		return a[:len(a)-1]
+	}
+	return a
 }

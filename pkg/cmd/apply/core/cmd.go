@@ -44,6 +44,7 @@ func NewCmd(applierFlags *genericclioptionsapplier.ApplierFlags, streams generic
 	}
 
 	cmd.Flags().BoolVar(&o.ApplierFlags.DryRun, "dry-run", false, "If set the resources will not be applied")
+	cmd.Flags().StringVar(&o.Header, "header", "", "The files which will be added to each template")
 	cmd.Flags().StringVar(&o.ValuesPath, "values", "", "The files containing the values")
 	cmd.Flags().StringArrayVar(&o.Paths, "path", []string{}, "The list of template paths")
 	cmd.Flags().StringArrayVar(&o.Excluded, "excluded", []string{}, "The list of paths to exclude")

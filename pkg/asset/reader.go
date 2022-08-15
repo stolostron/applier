@@ -7,5 +7,5 @@ type ScenarioReader interface {
 	// List all available assets in the data source
 	// with a prefix of one of the name in the files array
 	// excluding the name in the excluded array
-	AssetNames(prefixes, excluded []string) ([]string, error)
+	AssetNames(prefixes, excluded []string, headerFile string) ([]string, error)
 }

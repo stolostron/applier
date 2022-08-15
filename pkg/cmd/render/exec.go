@@ -23,7 +23,7 @@ func (o *Options) Complete(cmd *cobra.Command, args []string) (err error) {
 		if err != nil {
 			return err
 		}
-		if fi.Mode()&os.ModeNamedPipe != 0 {
+		if fi.Mode()&os.ModeCharDevice == 0 {
 			b, err = ioutil.ReadAll(os.Stdin)
 			if err != nil {
 				return err
@@ -47,12 +47,16 @@ func (o *Options) Complete(cmd *cobra.Command, args []string) (err error) {
 }
 
 func (o *Options) Validate() error {
-	reader := asset.NewDirectoriesReader(o.Header, o.Paths)
-
-	assetNames, err := reader.AssetNames(o.Paths, []string{o.Header})
+	reader, err := asset.NewDirectoriesReader(o.Header, o.Paths)
 	if err != nil {
 		return err
 	}
+
+	assetNames, err := reader.AssetNames(o.Paths, nil, o.Header)
+	if err != nil {
+		return err
+	}
+
 	if len(assetNames) == 0 {
 		return fmt.Errorf("no files selected")
 	}
@@ -66,10 +70,12 @@ func (o *Options) Run() error {
 	}
 	applier := applyBuilder.Build()
 
-	reader := asset.NewDirectoriesReader(o.Header, o.Paths)
+	reader, err := asset.NewDirectoriesReader(o.Header, o.Paths)
+	if err != nil {
+		return err
+	}
 	// Get files names
-	o.Excluded = append(o.Excluded, o.Header)
-	files, err := reader.AssetNames(o.Paths, o.Excluded)
+	files, err := reader.AssetNames(o.Paths, o.Excluded, o.Header)
 	if err != nil {
 		return err
 	}
