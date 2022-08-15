@@ -86,6 +86,8 @@ func (a *Applier) GetFileInfo(reader asset.ScenarioReader,
 	headerFile string,
 	files ...string) ([]FileInfo, error) {
 	filesInfo := make([]FileInfo, 0)
+	// Remove header files from the files as it should not be processed.
+	files = asset.Delete(files, headerFile)
 	for _, name := range files {
 		b, err := a.MustTemplateAsset(reader, values, headerFile, name)
 		if err != nil {

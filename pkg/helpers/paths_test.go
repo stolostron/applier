@@ -67,6 +67,7 @@ func TestSplitFiles(t *testing.T) {
 	type args struct {
 		reader asset.ScenarioReader
 		paths  []string
+		Header string
 	}
 	reader := scenario.GetScenarioResourcesReader()
 	tests := []struct {
@@ -112,7 +113,7 @@ func TestSplitFiles(t *testing.T) {
 				if got == nil {
 					t.Error("memFS is nil")
 				}
-				names, err := got.AssetNames(tt.args.paths, []string{})
+				names, err := got.AssetNames(tt.args.paths, []string{}, tt.args.Header)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("HasMultipleAssets() error = %v, wantErr %v", err, tt.wantErr)
 				}
@@ -123,7 +124,7 @@ func TestSplitFiles(t *testing.T) {
 				if got == nil {
 					t.Error("memFS is nil")
 				}
-				names, err := got.AssetNames(tt.args.paths, []string{})
+				names, err := got.AssetNames(tt.args.paths, []string{}, tt.args.Header)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("HasMultipleAssets() error = %v, wantErr %v", err, tt.wantErr)
 				}

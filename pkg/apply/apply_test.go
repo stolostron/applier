@@ -43,7 +43,13 @@ func TestMustTemplateAsset(t *testing.T) {
 				reader:     scenario.GetScenarioResourcesReader(),
 				values:     map[string]string{"myvalue": "thevalue"},
 			},
-			want:    []byte("thevalue\n\n\nhello"),
+			want: []byte(`apiVersion: example.com/v1
+kind: SampleCustomResource
+metadata:
+  name: "my-sample"
+spec:
+  data: hello
+`),
 			wantErr: false,
 		},
 		{

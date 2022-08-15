@@ -16,8 +16,8 @@ func NewMemFSReader() *MemFS {
 	}
 }
 
-func (r *MemFS) AddAssetsFromScenarioReader(reader ScenarioReader) error {
-	assets, err := reader.AssetNames(nil, nil)
+func (r *MemFS) AddAssetsFromScenarioReader(reader ScenarioReader, headerFile string) error {
+	assets, err := reader.AssetNames(nil, nil, headerFile)
 	if err != nil {
 		return err
 	}
@@ -39,13 +39,15 @@ func (r *MemFS) Asset(name string) ([]byte, error) {
 	return r.data[name], nil
 }
 
-func (r *MemFS) AssetNames(prefixes, excluded []string) ([]string, error) {
+func (r *MemFS) AssetNames(prefixes, excluded []string, headerFile string) ([]string, error) {
 	assetNames := make([]string, 0)
-
 	for f := range r.data {
 		if !isExcluded(f, prefixes, excluded) {
 			assetNames = append(assetNames, f)
 		}
 	}
+	// The header file must be added in the assetNames as it is retrieved latter
+	// to render asset in the MustTemplateAsset
+	assetNames = AppendItNotExists(assetNames, headerFile)
 	return assetNames, nil
 }

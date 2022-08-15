@@ -25,7 +25,7 @@ func (r *ScenarioResourcesReader) Asset(name string) ([]byte, error) {
 	return r.files.ReadFile(name)
 }
 
-func (r *ScenarioResourcesReader) AssetNames(prefixes, excluded []string) ([]string, error) {
+func (r *ScenarioResourcesReader) AssetNames(prefixes, excluded []string, headerFile string) ([]string, error) {
 	assetNames := make([]string, 0)
 	got, err := r.assetWalk(".")
 	if err != nil {
@@ -36,6 +36,9 @@ func (r *ScenarioResourcesReader) AssetNames(prefixes, excluded []string) ([]str
 			assetNames = append(assetNames, f)
 		}
 	}
+	// The header file must be added in the assetNames as it is retrieved latter
+	// to render asset in the MustTemplateAsset
+	assetNames = AppendItNotExists(assetNames, headerFile)
 	return assetNames, nil
 }
 

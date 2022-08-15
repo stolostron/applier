@@ -33,21 +33,12 @@ func NewCmd(applierFlags *genericclioptionsapplier.ApplierFlags, streams generic
 			helpers.DryRunMessage(o.options.ApplierFlags.DryRun)
 		},
 		RunE: func(c *cobra.Command, args []string) error {
-			if err := o.Complete(c, args); err != nil {
-				return err
-			}
-			if err := o.Validate(); err != nil {
-				return err
-			}
-			if err := o.Run(); err != nil {
-				return err
-			}
-
-			return nil
+			return o.runE(c, args)
 		},
 	}
 
 	cmd.Flags().BoolVar(&o.options.ApplierFlags.DryRun, "dry-run", false, "If set the resources will not be applied")
+	cmd.Flags().StringVar(&o.options.Header, "header", "", "The files which will be added to each template")
 	cmd.Flags().StringVar(&o.options.OutputFile, "output-file", "", "The generated resources will be copied in the specified file")
 	cmd.Flags().StringVar(&o.options.ValuesPath, "values", "", "The files containing the values")
 	cmd.Flags().StringArrayVar(&o.options.Paths, "path", []string{}, "The list of template paths")
@@ -58,4 +49,18 @@ func NewCmd(applierFlags *genericclioptionsapplier.ApplierFlags, streams generic
 	cmd.AddCommand(customresources.NewCmd(applierFlags, streams))
 	cmd.AddCommand(deployments.NewCmd(applierFlags, streams))
 	return cmd
+}
+
+func (o *Options) runE(c *cobra.Command, args []string) error {
+	if err := o.Complete(c, args); err != nil {
+		return err
+	}
+	if err := o.Validate(); err != nil {
+		return err
+	}
+	if err := o.Run(); err != nil {
+		return err
+	}
+
+	return nil
 }

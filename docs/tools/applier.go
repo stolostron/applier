@@ -24,7 +24,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	cm := cmd.NewCMCommand()
+	cm := cmd.NewApplierCommand()
 	if err := doc.GenMarkdownTree(cm, cleanPath); err != nil {
 		log.Fatal(err)
 	}

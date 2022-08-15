@@ -23,7 +23,7 @@ func (o *Options) Complete(cmd *cobra.Command, args []string) (err error) {
 		if err != nil {
 			return err
 		}
-		if fi.Mode()&os.ModeNamedPipe != 0 {
+		if fi.Mode()&os.ModeCharDevice == 0 {
 			b, err = ioutil.ReadAll(os.Stdin)
 			if err != nil {
 				return err
@@ -39,13 +39,17 @@ func (o *Options) Complete(cmd *cobra.Command, args []string) (err error) {
 	if err := yaml.Unmarshal(b, &o.options.Values); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func (o *Options) Validate() error {
-	reader := asset.NewDirectoriesReader(o.options.Header, o.options.Paths)
+	reader, err := asset.NewDirectoriesReader(o.options.Header, o.options.Paths)
+	if err != nil {
+		return err
+	}
 
-	assetNames, err := reader.AssetNames(o.options.Paths, nil)
+	assetNames, err := reader.AssetNames(o.options.Paths, nil, o.options.Header)
 	if err != nil {
 		return err
 	}
@@ -75,9 +79,12 @@ func (o *Options) Run() error {
 	}
 	applyBuilder := apply.NewApplierBuilder().
 		WithClient(kubeClient, apiExtensionsClient, dynamicClient)
-	reader := asset.NewDirectoriesReader(o.options.Header, o.options.Paths)
+	reader, err := asset.NewDirectoriesReader(o.options.Header, o.options.Paths)
+	if err != nil {
+		return err
+	}
 	o.options.Excluded = append(o.options.Excluded, o.options.Header)
-	files, err := reader.AssetNames(o.options.Paths, o.options.Excluded)
+	files, err := reader.AssetNames(o.options.Paths, o.options.Excluded, o.options.Header)
 	if err != nil {
 		return err
 	}

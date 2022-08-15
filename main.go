@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	root := cmd.NewCMCommand()
+	root := cmd.NewApplierCommand()
 	err := root.Execute()
 	if err != nil {
 		klog.V(1).ErrorS(err, "Error:")
