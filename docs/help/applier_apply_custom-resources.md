@@ -24,6 +24,7 @@ applier apply custom-resources --values values.yaml --path template_path1 --path
 ```
       --dry-run                If set the resources will not be applied
       --excluded stringArray   The list of paths to exclude
+      --header string          The files which will be added to each template
   -h, --help                   help for custom-resources
       --output-file string     The generated resources will be copied in the specified file
       --path stringArray       The list of template paths
