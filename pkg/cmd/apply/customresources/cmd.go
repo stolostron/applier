@@ -47,7 +47,7 @@ func NewCmd(applierFlags *genericclioptionsapplier.ApplierFlags, streams generic
 	cmd.Flags().StringVar(&o.Header, "header", "", "The files which will be added to each template")
 	cmd.Flags().StringVar(&o.ValuesPath, "values", "", "The files containing the values")
 	cmd.Flags().StringArrayVar(&o.Paths, "path", []string{}, "The list of template paths")
-	cmd.Flags().StringArrayVar(&o.Excluded, "excluded", []string{}, "The list of paths to exclude")
+	cmd.Flags().StringArrayVar(&o.Exclude, "excluded", []string{}, "The list of paths to exclude")
 	cmd.Flags().StringVar(&o.OutputFile, "output-file", "", "The generated resources will be copied in the specified file")
 	return cmd
 }

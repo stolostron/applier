@@ -75,7 +75,7 @@ func (o *Options) Run() error {
 		return err
 	}
 	// Get files names
-	files, err := reader.AssetNames(o.Paths, o.Excluded, o.Header)
+	files, err := reader.AssetNames(o.Paths, o.Exclude, o.Header)
 	if err != nil {
 		return err
 	}

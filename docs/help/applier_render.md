@@ -22,14 +22,14 @@ applier render --values values.yaml  [--path -] --path template_path1 --path tem
 ### Options
 
 ```
-      --excluded stringArray   The list of paths to exclude
-      --header string          The files which will be added to each template
-  -h, --help                   help for render
-      --output-dir string      The directory were to write the rendered files
-      --output-file string     The generated resources will be copied in the specified file
-      --path stringArray       The list of template paths
-      --sort-on-kind           If set the files will be sorted by their kind (default true) (default true)
-      --values string          The files containing the values
+      --exclude stringArray   The list of paths to exclude
+      --header string         The files which will be added to each template
+  -h, --help                  help for render
+      --output-dir string     The directory were to write the rendered files
+      --output-file string    The generated resources will be copied in the specified file
+      --path stringArray      The list of template paths
+      --sort-on-kind          If set the files will be sorted by their kind (default true) (default true)
+      --values string         The files containing the values
 ```
 
 ### Options inherited from parent commands

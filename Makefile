@@ -54,8 +54,8 @@ release:
 
 .PHONY: build-krew
 build-krew: krew-tools
-	@if [[ -z "${VERSION}" ]]; then VERSION=`cat VERSION.txt`; echo $$VERSION; fi; \
-	docker run -v ${PROJECT_DIR}/.krew.yaml:/tmp/template-file.yaml rajatjindal/krew-release-bot:v0.0.40 \
+	@if [[ -z "${VERSION}" ]]; then VERSION=`cat version/VERSION.txt`; echo $$VERSION; fi; \
+	docker run -v ${PROJECT_DIR}/.krew.yaml:/tmp/template-file.yaml rajatjindal/krew-release-bot:v0.0.43 \
 	krew-release-bot template --tag v$$VERSION --template-file /tmp/template-file.yaml > applier.yaml; 
 	KREW=/tmp/krew-${GOOS}\_$(GOARCH) && \
 	KREW_ROOT=`mktemp -d` KREW_OS=darwin KREW_ARCH=amd64 $$KREW install --manifest=applier.yaml && \
