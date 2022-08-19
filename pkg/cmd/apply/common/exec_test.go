@@ -62,7 +62,7 @@ func TestOptions_Complete(t *testing.T) {
 				ResourcesType: tt.fields.ResourcesType,
 				OutputFile:    tt.fields.OutputFile,
 				SortOnKind:    tt.fields.SortOnKind,
-				Excluded:      tt.fields.Excluded,
+				Exclude:       tt.fields.Excluded,
 			}
 			var fileIn *os.File
 			var err error
@@ -159,7 +159,7 @@ func TestOptions_Validate(t *testing.T) {
 				ResourcesType: tt.fields.ResourcesType,
 				OutputFile:    tt.fields.OutputFile,
 				SortOnKind:    tt.fields.SortOnKind,
-				Excluded:      tt.fields.Excluded,
+				Exclude:       tt.fields.Excluded,
 			}
 			if err := o.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("Options.Validate() error = %v, wantErr %v", err, tt.wantErr)

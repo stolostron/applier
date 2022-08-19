@@ -7,9 +7,9 @@ metadata:
 spec:
   version: {{ .TagName }}
   homepage: https://github.com/stolostron/applier
-  shortDescription: Provides an apply and render commands for template based resources.
+  shortDescription: Apply 'go text/template' files on k8s.
   description: |
-    This plugin allows you apply on kubernetes template resources (golang text/template) or just render them.
+    This plugin allows you apply 'go text/template' files on k8s or just render them.
   platforms:
   - selector:
       matchLabels:

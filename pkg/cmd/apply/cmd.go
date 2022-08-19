@@ -42,7 +42,7 @@ func NewCmd(applierFlags *genericclioptionsapplier.ApplierFlags, streams generic
 	cmd.Flags().StringVar(&o.options.OutputFile, "output-file", "", "The generated resources will be copied in the specified file")
 	cmd.Flags().StringVar(&o.options.ValuesPath, "values", "", "The files containing the values")
 	cmd.Flags().StringArrayVar(&o.options.Paths, "path", []string{}, "The list of template paths")
-	cmd.Flags().StringArrayVar(&o.options.Excluded, "excluded", []string{}, "The list of paths to exclude")
+	cmd.Flags().StringArrayVar(&o.options.Exclude, "exclude", []string{}, "The list of paths to exclude")
 	cmd.Flags().BoolVar(&o.options.SortOnKind, "sort-on-kind", true, "If set the files will be sorted by their kind (default true)")
 
 	cmd.AddCommand(core.NewCmd(applierFlags, streams))

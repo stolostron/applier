@@ -2,11 +2,11 @@
 
 # IMPORTANT
 
-This is the v1.1.0 version of the applier which took a totaly different approach to create and update resources on kubebernetes and it is not compatible with the v1.0.1 version. Now the applier relies on the openshift/libragy.go to apply the rendered files on kubeberentes.
+This is the next generation of the applier which took a totaly different approach to create and update resources on kubebernetes and it is not compatible with the v1.0.1 version. Now the applier relies on the openshift/libragy.go to apply the rendered files on kubeberentes.
 You can fork the V1.0.1 latest version if you want to continue to improve it or switch to the V1.1.0 version.
 # Applier
 
-The applier applies templated resources on kubebernetes. It can be use as a CLI or as a package in your code allowing you to apply embeded templates to your clusters.
+The applier applies templated resources on kubebernetes. It can be use as a CLI or as a Go package in your code allowing you to apply embeded templates to your clusters.
 ## Introduction to template
 
 The template supports the [text/template](https://golang.org/pkg/text/template/) framework and so you can use statements defined in that framework.
@@ -17,7 +17,7 @@ Available functions (available if `WithTemplateFuncMap(applier.FuncMap())` is ca
 - `encodeBase64` which base64 encode a string, but `b64enc` from sprig can be used.
 - `include` which include a template.
 
-A Header file can be specified and if so will be included at the beginning of each template
+A Header file can be specified containing go/text `block` or `define` and if so will be included at the beginning of each template. This allows you to add extra business logic in your templates.
 ## Template examples:
 
 - `applier render --values examples/values.yaml --paths examples/simple`
@@ -27,7 +27,7 @@ A Header file can be specified and if so will be included at the beginning of ea
 ## Packages
 ### Methods
 
-The package provides functions to apply or render resources. These functions must be called on a [Applier](hpkg/apply/apply.go#L133). An Applier can be build using the function NewApplierBuilder as follow:
+The package provides methods to apply or render resources. These functions must be called on a [Applier](pkg/apply/apply.go#L133). An Applier can be build using the function NewApplierBuilder as follow:
 
 ```Go
 applier := applierBuilder.
@@ -69,28 +69,110 @@ func GetScenarioResourcesReader() *asset.ScenarioResourcesReader {
 ```
 and then call the GetScenarioResourcesReader() to get the reader.
 
-### Example:
+### Examples:
 
 Check the [command line apply code](pkg/cmd/apply/common/exec.go) to apply a list of files and this to just render [command line render code](/Users/dvernier/acm/applier/pkg/cmd/render/exec.go).
 
 ## command-line
 
-A command-line is available to apply yaml files in a given directory. 
-To generate it run either: 
+A command-line is available to apply or render yaml files of a given directory. 
+To generate the command line you can clone this project and then run either: 
 - `make install` to install from your local environment
 - `make oc-plugin` to install as a `oc` plugin
 - `make kubectl-plugin` to install as a `kubectl` plugin
+
+or you can run
+
+```
+kubectl krew install applier
+```
+To install the krew plugin follow: [krew quickstart](https://krew.sigs.k8s.io/docs/user-guide/quickstart/)
 
 To get the usage, run:
 ```
 [oc|kubectl] applier -h 
 ```
 
+## apply command 
+
+The apply command can be use as is or with one of these 3 subcommands `core-reources`, `custom-resources` or `deployments`. Using it directly as `applier apply [options]` allows you to have a mix of core, custom and deployment resources in the `--path` option. The applier will sort the resource depending on their kind before applying them.
+
+By default, the option `--sort-on-kind` is set to true and so the files will be sorted based on the kind. For example, namespace will be placed before serviceaccount.
+
 For example you can run:
 
 ```bash
 applier apply core-resources --path ./examples/simple --values ./examples/values.yaml
-applier render --path ./examples/simple --values ./examples/values.yaml | kubectl apply -f - 
-cat ./example/values.yaml | apply render --path ./examples/simple | kubectl apply -f -
 ```
-By default, the option `--sort-on-kind` is set to true and so the files will be sorted based on the kind. For example, namespace will be placed before serviceaccount.
+or
+```
+cat ./examples/values.yaml | applier apply core-resources --path ./examples/simple
+```
+
+The generated yaml file can be shown with option `--output-file`.
+Dry-run can be enabled with the option `--dry-run`.
+The combination of `--dry-run` and `--output-file /dev/stdout` (as the bellow `render` command) with ` | kubectl apply -f  -` allows to apply apply any kind of resources and not only `core`, `custom` and `deployments` as the resources template in that case will be only rendered.
+
+For example:
+```
+applier apply core-resources --path ./examples/simple --values ./examples/values.yaml --dry-run --output-file /dev/stdout
+```
+will not apply the resources and will display the following:
+
+```
+# Copyright Red Hat
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "my-ns"
+---
+# Copyright Red Hat
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "my-sa"
+  namespace: "my-ns"
+secrets:
+- name: mysecret
+---
+```
+## render command
+
+The `render` command is similar than using the `apply` command with the options `--dry-run` and `--output-file /dev/stdout`
+
+```
+applier render --path ./examples/simple --values ./examples/values.yaml
+```
+or
+```
+cat ./example/values.yaml | apply render --path ./examples/simple
+```
+
+The result will be:
+
+```
+# Copyright Red Hat
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "my-ns"
+---
+# Copyright Red Hat
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "my-sa"
+  namespace: "my-ns"
+secrets:
+- name: mysecret
+---
+```
+
+The `render` subcommand can be use in conjunction with `| kubectl apply -f -` to apply the generated yaml file.
+
+
+

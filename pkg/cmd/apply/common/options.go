@@ -25,7 +25,7 @@ type Options struct {
 	//The file to output the resources will be sent to the file.
 	OutputFile string
 	SortOnKind bool
-	Excluded   []string
+	Exclude    []string
 }
 
 func NewOptions(applierFlags *genericclioptionsapplier.ApplierFlags, streams genericclioptions.IOStreams) *Options {

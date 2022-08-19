@@ -82,8 +82,8 @@ func (o *Options) Run() error {
 	if err != nil {
 		return err
 	}
-	o.Excluded = append(o.Excluded, o.Header)
-	files, err := reader.AssetNames(o.Paths, o.Excluded, o.Header)
+	o.Exclude = append(o.Exclude, o.Header)
+	files, err := reader.AssetNames(o.Paths, o.Exclude, o.Header)
 	if err != nil {
 		return err
 	}

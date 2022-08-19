@@ -22,14 +22,14 @@ applier apply core-resources --values values.yaml --path template_path1 --path t
 ### Options
 
 ```
-      --dry-run                If set the resources will not be applied
-      --excluded stringArray   The list of paths to exclude
-      --header string          The files which will be added to each template
-  -h, --help                   help for core-resources
-      --output-file string     The generated resources will be copied in the specified file
-      --path stringArray       The list of template paths
-      --sort-on-kind           If set the files will be sorted by their kind (default true) (default true)
-      --values string          The files containing the values
+      --dry-run               If set the resources will not be applied
+      --exclude stringArray   The list of paths to exclude
+      --header string         The files which will be added to each template
+  -h, --help                  help for core-resources
+      --output-file string    The generated resources will be copied in the specified file
+      --path stringArray      The list of template paths
+      --sort-on-kind          If set the files will be sorted by their kind (default true) (default true)
+      --values string         The files containing the values
 ```
 
 ### Options inherited from parent commands

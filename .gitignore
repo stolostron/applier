@@ -26,3 +26,5 @@ test/functional/functional.test
 /docs/tools/applier.go
 /docs/help.tar.gz
 /docs/help.zip
+
+/applier.yaml

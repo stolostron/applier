@@ -16,7 +16,7 @@ type Options struct {
 	OutputFile string
 	SortOnKind bool
 	OutputDir  string
-	Excluded   []string
+	Exclude    []string
 }
 
 func NewOptions(applierFlags *genericclioptionsapplier.ApplierFlags, streams genericclioptions.IOStreams) *Options {
