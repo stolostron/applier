@@ -67,7 +67,6 @@ func (r *YamlFileReader) AssetNames(prefixes, excluded []string, headerFile stri
 		if fileInfo.IsDir() {
 			return nil
 		}
-		fmt.Println(path)
 		if isExcluded(path, []string{path}, excluded) {
 			return nil
 		}
