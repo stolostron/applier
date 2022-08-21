@@ -3,6 +3,7 @@ package apply
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/Masterminds/sprig"
 	"github.com/ghodss/yaml"
+	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,6 +25,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/discovery/cached/memory"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
 
 	"github.com/openshift/library-go/pkg/operator/events"
@@ -36,11 +41,77 @@ var (
 	genericCodec  = genericCodecs.UniversalDeserializer()
 )
 
-func (a *Applier) GetCache() resourceapply.ResourceCache {
+// WithRestConfig adds the clients based on the provided rest.Config
+func (a Applier) WithRestConfig(cfg *rest.Config) Applier {
+	applier := a
+	kubeClient := kubernetes.NewForConfigOrDie(cfg)
+	apiExtensionsClient := apiextensionsclient.NewForConfigOrDie(cfg)
+	dynamicClient := dynamic.NewForConfigOrDie(cfg)
+
+	applier.kubeClient = kubeClient
+	applier.apiExtensionsClient = apiExtensionsClient
+	applier.dynamicClient = dynamicClient
+	return applier
+}
+
+// WithClient adds the several clients to the applier
+func (a Applier) WithClient(
+	kubeClient kubernetes.Interface,
+	apiExtensionsClient apiextensionsclient.Interface,
+	dynamicClient dynamic.Interface) Applier {
+	applier := a
+	applier.kubeClient = kubeClient
+	applier.apiExtensionsClient = apiExtensionsClient
+	applier.dynamicClient = dynamicClient
+	return applier
+}
+
+// WithTemplateFuncMap add template.FuncMap to the applier.
+func (a Applier) WithTemplateFuncMap(fm template.FuncMap) Applier {
+	applier := a
+	applier.templateFuncMap = fm
+	return applier
+}
+
+// WithOwner add an ownerref to the object
+func (a Applier) WithOwner(owner runtime.Object,
+	blockOwnerDeletion,
+	controller bool,
+	scheme *runtime.Scheme) Applier {
+	applier := a
+	applier.owner = owner
+	applier.blockOwnerDeletion = &blockOwnerDeletion
+	applier.controller = &controller
+	applier.scheme = scheme
+	return applier
+}
+
+// WithCache set a the cache instead of using the default cache created on the Build()
+func (a Applier) WithCache(cache resourceapply.ResourceCache) Applier {
+	applier := a
+	applier.cache = cache
+	return applier
+}
+
+// WithContext  set a the cache instead of using the default cache created on the Build()
+func (a Applier) WithContext(ctx context.Context) Applier {
+	applier := a
+	applier.context = ctx
+	return applier
+}
+
+// WithKindOrder defines the order in which the files must be applied.
+func (a Applier) WithKindOrder(kindsOrder KindsOrder) Applier {
+	applier := a
+	applier.kindOrder = kindsOrder
+	return applier
+}
+
+func (a Applier) GetCache() resourceapply.ResourceCache {
 	return a.cache
 }
 
-func (a *Applier) Apply(reader asset.ScenarioReader,
+func (a Applier) Apply(reader asset.ScenarioReader,
 	values interface{},
 	dryRun bool,
 	headerFile string,
@@ -104,7 +175,7 @@ func splitFiles(files []string, filesInfo []FileInfo) (filesDirectly,
 }
 
 //ApplyDeployments applies a appsv1.Deployment template
-func (a *Applier) ApplyDeployments(
+func (a Applier) ApplyDeployments(
 	reader asset.ScenarioReader,
 	values interface{},
 	dryRun bool,
@@ -131,7 +202,7 @@ func (a *Applier) ApplyDeployments(
 }
 
 //ApplyDeployment apply a deployment
-func (a *Applier) ApplyDeployment(
+func (a Applier) ApplyDeployment(
 	reader asset.ScenarioReader,
 	values interface{},
 	dryRun bool,
@@ -162,7 +233,7 @@ func (a *Applier) ApplyDeployment(
 }
 
 //ApplyDirectly applies standard kubernetes resources.
-func (a *Applier) ApplyDirectly(
+func (a Applier) ApplyDirectly(
 	reader asset.ScenarioReader,
 	values interface{},
 	dryRun bool,
@@ -231,7 +302,7 @@ func getFiles(reader asset.ScenarioReader, files []string, headerFile string) (a
 }
 
 //ApplyCustomResources applies custom resources
-func (a *Applier) ApplyCustomResources(
+func (a Applier) ApplyCustomResources(
 	reader asset.ScenarioReader,
 	values interface{},
 	dryRun bool,
@@ -257,7 +328,7 @@ func (a *Applier) ApplyCustomResources(
 }
 
 //ApplyCustomResource applies a custom resource
-func (a *Applier) ApplyCustomResource(
+func (a Applier) ApplyCustomResource(
 	reader asset.ScenarioReader,
 	values interface{},
 	dryRun bool,
@@ -352,7 +423,7 @@ func getTemplate(templateName string, customFuncMap template.FuncMap) *template.
 }
 
 //MustTemplateAssets render list of files
-func (a *Applier) MustTemplateAssets(reader asset.ScenarioReader,
+func (a Applier) MustTemplateAssets(reader asset.ScenarioReader,
 	values interface{},
 	headerFile string,
 	files ...string) ([]string, error) {
@@ -395,7 +466,7 @@ func (a *Applier) MustTemplateAssets(reader asset.ScenarioReader,
 // https://golang.org/pkg/text/template/#hdr-Nested_template_definitions
 // This allows to add functions which can be use in each file.
 // The values object will be used to render the template
-func (a *Applier) MustTemplateAsset(reader asset.ScenarioReader,
+func (a Applier) MustTemplateAsset(reader asset.ScenarioReader,
 	values interface{},
 	headerFile, name string) ([]byte, error) {
 	tmpl := getTemplate(name, a.templateFuncMap)
@@ -494,7 +565,7 @@ func (a *Applier) MustTemplateAsset(reader asset.ScenarioReader,
 	return buf.Bytes(), nil
 }
 
-func (a *Applier) generateOwnerRef() (ownerRef metav1.OwnerReference, err error) {
+func (a Applier) generateOwnerRef() (ownerRef metav1.OwnerReference, err error) {
 	err = addTypeInformationToObject(a.owner, a.scheme)
 	if err != nil {
 		return ownerRef, err
@@ -557,14 +628,12 @@ func WriteOutput(fileName string, output []string) (err error) {
 	}
 	// defer f.Close()
 	for _, s := range output {
-		if !(strings.HasSuffix(s, "---") || strings.HasSuffix(s, "---\n")) {
-			_, err := f.WriteString(fmt.Sprintf("%s\n---\n", s))
-			if err != nil {
-				if errClose := f.Close(); errClose != nil {
-					return fmt.Errorf("failed to close %v after err %v on writing", errClose, err)
-				}
-				return err
+		_, err := f.WriteString(fmt.Sprintf("%s\n---\n", s))
+		if err != nil {
+			if errClose := f.Close(); errClose != nil {
+				return fmt.Errorf("failed to close %v after err %v on writing", errClose, err)
 			}
+			return err
 		}
 	}
 	err = f.Close()

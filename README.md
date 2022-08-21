@@ -35,7 +35,7 @@ applier := applierBuilder.
 	Build()
 ```
 
-There is other WithXxxx functions you can call on the applierBuilder such as `WithTemplateFuncMap`, `WithOwner`, `WithCache`, `WithContext`, `WithKindOrder`...
+There is other WithXxxx functions you can call on the applierBuilder or on the applier itself such as `WithTemplateFuncMap`, `WithOwner`, `WithCache`, `WithContext`, `WithKindOrder`...
 
 Once you have the applier you can call one of the following method.
 - [Apply](pkg/apply/apply.go) which will call `ApplyDirectly`, `ApplyCustomResources` or `ApplyDeployments` depending on the kind of resources.

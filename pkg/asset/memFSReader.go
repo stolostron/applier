@@ -3,7 +3,8 @@
 package asset
 
 type MemFS struct {
-	data map[string][]byte
+	files []string
+	data  map[string][]byte
 }
 
 var _ ScenarioReader = &ScenarioResourcesReader{
@@ -12,7 +13,9 @@ var _ ScenarioReader = &ScenarioResourcesReader{
 
 func NewMemFSReader() *MemFS {
 	return &MemFS{
-		data: make(map[string][]byte, 0),
+		// This array is used to keep the same order
+		files: make([]string, 0),
+		data:  make(map[string][]byte, 0),
 	}
 }
 
@@ -32,6 +35,7 @@ func (r *MemFS) AddAssetsFromScenarioReader(reader ScenarioReader, headerFile st
 }
 
 func (r *MemFS) AddAsset(fileName string, data []byte) {
+	r.files = append(r.files, fileName)
 	r.data[fileName] = data
 }
 
@@ -41,7 +45,7 @@ func (r *MemFS) Asset(name string) ([]byte, error) {
 
 func (r *MemFS) AssetNames(prefixes, excluded []string, headerFile string) ([]string, error) {
 	assetNames := make([]string, 0)
-	for f := range r.data {
+	for _, f := range r.files {
 		if !isExcluded(f, prefixes, excluded) {
 			assetNames = append(assetNames, f)
 		}
