@@ -10,7 +10,8 @@ import (
 
 func TestMemFS_AssetNames(t *testing.T) {
 	type fields struct {
-		data map[string][]byte
+		files []string
+		data  map[string][]byte
 	}
 	type args struct {
 		files, excluded []string
@@ -26,6 +27,7 @@ func TestMemFS_AssetNames(t *testing.T) {
 		{
 			name: "2 files no execluded",
 			fields: fields{
+				files: []string{"file1", "file2"},
 				data: map[string][]byte{
 					"file1": []byte("file1"),
 					"file2": []byte("file2"),
@@ -41,6 +43,7 @@ func TestMemFS_AssetNames(t *testing.T) {
 		{
 			name: "2 files 1 execluded",
 			fields: fields{
+				files: []string{"file1", "file2"},
 				data: map[string][]byte{
 					"file1": []byte("file1"),
 					"file2": []byte("file2"),
@@ -57,7 +60,8 @@ func TestMemFS_AssetNames(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := &MemFS{
-				data: tt.fields.data,
+				files: tt.fields.files,
+				data:  tt.fields.data,
 			}
 			got, err := r.AssetNames(tt.args.files, tt.args.excluded, tt.args.headerFile)
 			if (err != nil) != tt.wantErr {

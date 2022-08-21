@@ -1,11 +1,17 @@
 [comment]: # ( Copyright Red Hat )
 # Release Content
-- remove `fmt.Println(path)` while using CLI
-- 
+- Add WithRestConfig(), it can be used instead of WithClient()
+- Add WithOwner() at the applier level.
+- Add WithContext at the applier level.
+- Add WithKindOrder() at the applier level.
+- Keep the original order when running with `--sort-on-kind=false`
+
 ## Additions
 
 ## Breaking changes
 
 ## Bug fixes
+
+- Resources was not rendered when starting with "---"
 
 ## Internal changes

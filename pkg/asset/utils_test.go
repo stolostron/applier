@@ -11,7 +11,8 @@ import (
 
 func TestMemFS_ExtractAssets(t *testing.T) {
 	type fields struct {
-		data map[string][]byte
+		files []string
+		data  map[string][]byte
 	}
 	type args struct {
 		prefix     string
@@ -32,6 +33,7 @@ func TestMemFS_ExtractAssets(t *testing.T) {
 		{
 			name: "2 files no execluded",
 			fields: fields{
+				files: []string{"file1", "file2"},
 				data: map[string][]byte{
 					"file1": []byte("file1content"),
 					"file2": []byte("file2content"),
@@ -48,7 +50,8 @@ func TestMemFS_ExtractAssets(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := &MemFS{
-				data: tt.fields.data,
+				files: tt.fields.files,
+				data:  tt.fields.data,
 			}
 			if err := ExtractAssets(r, tt.args.prefix, tt.args.dir, tt.args.excluded, tt.args.headerFile); (err != nil) != tt.wantErr {
 				t.Errorf("MemFS.ExtractAssets() error = %v, wantErr %v", err, tt.wantErr)
