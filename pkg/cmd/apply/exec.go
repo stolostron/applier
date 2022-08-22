@@ -10,7 +10,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/stolostron/applier/pkg/apply"
 	"github.com/stolostron/applier/pkg/asset"
-	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 )
 
 func (o *Options) Complete(cmd *cobra.Command, args []string) (err error) {
@@ -60,25 +59,12 @@ func (o *Options) Validate() error {
 }
 
 func (o *Options) Run() error {
-	kubeClient, err := o.options.ApplierFlags.KubectlFactory.KubernetesClientSet()
-	if err != nil {
-		return err
-	}
-	dynamicClient, err := o.options.ApplierFlags.KubectlFactory.DynamicClient()
-	if err != nil {
-		return err
-	}
 
 	restConfig, err := o.options.ApplierFlags.KubectlFactory.ToRESTConfig()
 	if err != nil {
 		return err
 	}
-	apiExtensionsClient, err := apiextensionsclient.NewForConfig(restConfig)
-	if err != nil {
-		return err
-	}
-	applyBuilder := apply.NewApplierBuilder().
-		WithClient(kubeClient, apiExtensionsClient, dynamicClient)
+	applyBuilder := apply.NewApplierBuilder().WithRestConfig(restConfig)
 	reader, err := asset.NewDirectoriesReader(o.options.Header, o.options.Paths)
 	if err != nil {
 		return err
