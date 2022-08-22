@@ -51,18 +51,23 @@ func ExtractAssets(r ScenarioReader, prefix, dir string, excluded []string, head
 	return nil
 }
 
-func isExcluded(f string, files, excluded []string) bool {
+func isExcluded(f string, prefixes, excluded []string) bool {
 	isExcluded := false
 	for _, e := range excluded {
 		if f == e {
 			isExcluded = true
 		}
 	}
+	// Already excluded
 	if isExcluded {
 		return true
 	}
+	// No extra test to do
+	if prefixes == nil {
+		return false
+	}
 	isExcluded = true
-	for _, d := range files {
+	for _, d := range prefixes {
 		if strings.HasPrefix(f, d) {
 			isExcluded = false
 		}

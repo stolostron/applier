@@ -5,7 +5,7 @@
 - Add WithContext at the applier level.
 - Add WithKindOrder() at the applier level.
 - Keep the original order when running with `--sort-on-kind=false`
-
+- Now AssetNames with a nil prefix will skip the prefix test
 ## Additions
 
 ## Breaking changes
